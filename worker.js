@@ -713,11 +713,6 @@ function parseScheduleGames(
     if (
       teamPositions.length < 2
     ) {
-      /*
-       * KBO 페이지 구조에 따라
-       * 경기 정보가 한 셀 안에
-       * 들어가는 경우도 처리한다.
-       */
       const joined =
         after.join(" ");
 
@@ -852,12 +847,6 @@ function parseScheduleGames(
         currentDate <
         today
       ) {
-        /*
-         * 핵심 수정:
-         * 이미 지난 날짜인데
-         * 연기/취소 표시가 없다면
-         * 종료 경기로 처리.
-         */
         status =
           "종료";
       }
@@ -932,12 +921,6 @@ function parseScheduleGames(
     let homeScore =
       null;
 
-    /*
-     * 7:10
-     * 7 : 10
-     * 7-10
-     * 형태 모두 처리
-     */
     const scoreMatch =
       betweenText.match(
         /(\d{1,2})\s*[:\-]\s*(\d{1,2})/
@@ -955,10 +938,6 @@ function parseScheduleGames(
         );
     }
 
-    /*
-     * 점수가 별도 숫자 셀로
-     * 나뉜 경우도 처리
-     */
     if (
       awayScore === null ||
       homeScore === null
@@ -1041,14 +1020,6 @@ function parseScheduleGames(
     else if (
       currentDate < today
     ) {
-      /*
-       * 이번 핵심 수정.
-       *
-       * 현재 날짜보다 이전 경기이며
-       * 연기/취소/중단 표시가 없다면
-       * 점수를 못 읽었더라도 종료 경기로
-       * 인정한다.
-       */
       status =
         "종료";
     }
@@ -1355,6 +1326,166 @@ function scoreboardGames(
   return games;
 }
 
+function shiftDate(
+  date,
+  deltaDays
+) {
+  const [y, m, d] =
+    date
+      .split("-")
+      .map(Number);
+
+  const dt =
+    new Date(
+      Date.UTC(
+        y,
+        m - 1,
+        d + deltaDays
+      )
+    );
+
+  return (
+    `${dt.getUTCFullYear()}-` +
+    `${String(
+      dt.getUTCMonth() + 1
+    ).padStart(2, "0")}-` +
+    `${String(
+      dt.getUTCDate()
+    ).padStart(2, "0")}`
+  );
+}
+
+async function recentLotteFinalGames(
+  today,
+  wanted = 3
+) {
+  const found = [];
+  const seen =
+    new Set();
+
+  /*
+   * 최근 경기는 DailySchedule이 아니라
+   * 날짜별 공식 KBO Scoreboard를 직접 확인한다.
+   *
+   * 오늘부터 과거 방향으로 확인하며,
+   * LOTTE가 포함되고 FINAL이며
+   * 최종 점수가 있는 경기만 모은다.
+   *
+   * 한 번에 7일씩 확인하고
+   * 최근 경기 3개가 모이면 멈춘다.
+   */
+  for (
+    let start = 0;
+    start < 42 &&
+    found.length < wanted;
+    start += 7
+  ) {
+    const dates =
+      Array.from(
+        {
+          length: 7
+        },
+        (_, i) =>
+          shiftDate(
+            today,
+            -(start + i)
+          )
+      );
+
+    const pages =
+      await Promise.all(
+        dates.map(
+          date =>
+            get(
+              `${ENG}/Schedule/Scoreboard.aspx?searchDate=${date}`
+            )
+              .then(
+                html => ({
+                  date,
+                  html
+                })
+              )
+              .catch(
+                () => ({
+                  date,
+                  html: ""
+                })
+              )
+        )
+      );
+
+    for (
+      const {
+        date,
+        html
+      } of pages
+    ) {
+      if (!html) {
+        continue;
+      }
+
+      const games =
+        scoreboardGames(
+          html
+        );
+
+      for (
+        const game
+        of games
+      ) {
+        if (
+          game.status !==
+            "종료" ||
+          game.awayScore ===
+            null ||
+          game.homeScore ===
+            null
+        ) {
+          continue;
+        }
+
+        const key =
+          `${date}|` +
+          `${game.away}|` +
+          `${game.home}`;
+
+        if (
+          seen.has(key)
+        ) {
+          continue;
+        }
+
+        seen.add(key);
+
+        found.push({
+          ...game,
+          date
+        });
+      }
+    }
+
+    found.sort(
+      (a, b) =>
+        gameSortKey(b)
+          .localeCompare(
+            gameSortKey(a)
+          )
+    );
+
+    if (
+      found.length >=
+      wanted
+    ) {
+      break;
+    }
+  }
+
+  return found.slice(
+    0,
+    wanted
+  );
+}
+
 function gameSortKey(g) {
   return (
     `${g.date || ""}T` +
@@ -1508,13 +1639,6 @@ export default {
         const current =
           currentMonthKST();
 
-        /*
-         * 최근 경기가 월 초에 걸쳐도
-         * 안정적으로 3개 나오게
-         * 2개월 전까지 확인한다.
-         *
-         * 예정 경기도 다음 달까지 확인.
-         */
         const months = [
           shiftMonth(
             current,
@@ -1591,24 +1715,20 @@ export default {
           todayKST();
 
         /*
-         * 종료로 판정된 과거 경기 중
-         * 가장 최근 3개.
+         * 핵심 변경:
+         *
+         * 최근 3경기는
+         * DailySchedule의 상태를 사용하지 않고
+         * Scoreboard의 FINAL 경기를 직접 찾는다.
          */
         const recent =
-          allGames
-            .filter(
-              g =>
-                g.status ===
-                  "종료" &&
-                g.date <
-                  today
-            )
-            .slice(-3)
-            .reverse();
+          await recentLotteFinalGames(
+            today,
+            3
+          );
 
         /*
-         * 오늘 이후 예정 경기 중
-         * 가장 가까운 3개.
+         * 예정 3경기는 기존 방식 유지.
          */
         const upcoming =
           allGames

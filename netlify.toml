@@ -1,0 +1,4 @@
+[build]
+  command = "echo Building YungangDotcom KBO Functions"
+  publish = "."
+  functions = "netlify/functions"

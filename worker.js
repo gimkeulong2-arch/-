@@ -388,62 +388,431 @@ function seasonTables(html) {
     .slice(0, 6);
 }
 
-function scheduleRows(html) {
-  const ts = tables(html);
+const TEAM_NAMES = [
+  "LG", "DOOSAN", "SAMSUNG", "LOTTE", "HANWHA",
+  "KIA", "SSG", "KIWOOM", "KT", "NC"
+];
 
-  let best = null;
+const LOCATION_KO = {
+  JAMSIL: "잠실",
+  SAJIK: "사직",
+  SUWON: "수원",
+  GWANGJU: "광주",
+  CHANGWON: "창원",
+  DAEGU: "대구",
+  MUNHAK: "문학",
+  GOCHEOKSKY: "고척",
+  DAEJEON: "대전",
+  POHANG: "포항",
+  ULSAN: "울산"
+};
 
-  for (const t of ts) {
-    const joined =
-      `${t.headers.join(" ")} ` +
-      `${t.rows.flat().join(" ")}`;
+function shiftMonth(month, delta) {
+  const [y, m] = month.split("-").map(Number);
+  const d = new Date(Date.UTC(y, m - 1 + delta, 1));
 
-    if (
-      /DATE|TIME|GAME|경기|구장/i.test(joined)
-    ) {
-      if (
-        !best ||
-        t.rows.length > best.rows.length
-      ) {
-        best = t;
-      }
-    }
-  }
-
-  return {
-    headers:
-      best
-        ? best.headers
-        : [],
-
-    rows:
-      best
-        ? best.rows.filter(
-            r =>
-              /LOTTE|Lotte|롯데/i.test(
-                r.join(" ")
-              )
-          )
-        : []
-  };
+  return `${d.getUTCFullYear()}-${String(
+    d.getUTCMonth() + 1
+  ).padStart(2, "0")}`;
 }
 
-function scoreboard(html) {
-  const games = [];
+function scheduleDateFromLabel(label, month) {
+  const m = String(label || "").match(
+    /^(\d{2})\.(\d{2})\([A-Z]{3}\)$/i
+  );
 
-  for (const t of tables(html)) {
-    for (const row of t.rows) {
+  if (!m) {
+    return "";
+  }
+
+  return `${month.slice(0, 4)}-${m[1]}-${m[2]}`;
+}
+
+function parseScheduleGames(html, month) {
+  const out = [];
+
+  const rows =
+    html.match(/<tr\b[\s\S]*?<\/tr>/gi) || [];
+
+  let currentDate = "";
+
+  for (const row of rows) {
+    const cells = [
+      ...row.matchAll(
+        /<td\b[^>]*>([\s\S]*?)<\/td>/gi
+      )
+    ]
+      .map(m => cleanText(m[1]))
+      .filter(Boolean);
+
+    if (!cells.length) {
+      continue;
+    }
+
+    const dateLabel =
+      cells.find(
+        v =>
+          /^\d{2}\.\d{2}\([A-Z]{3}\)$/i.test(v)
+      );
+
+    if (dateLabel) {
+      currentDate =
+        scheduleDateFromLabel(
+          dateLabel,
+          month
+        );
+    }
+
+    if (!currentDate) {
+      continue;
+    }
+
+    const timeIndex =
+      cells.findIndex(
+        v =>
+          /^\d{1,2}:\d{2}$/.test(v)
+      );
+
+    if (timeIndex < 0) {
+      continue;
+    }
+
+    const after =
+      cells.slice(timeIndex + 1);
+
+    const teamPositions = [];
+
+    after.forEach((v, i) => {
       if (
-        /LOTTE|Lotte|롯데/i.test(
-          row.join(" ")
+        TEAM_NAMES.includes(
+          v.toUpperCase()
         )
       ) {
-        games.push(row);
+        teamPositions.push(i);
+      }
+    });
+
+    if (teamPositions.length < 2) {
+      continue;
+    }
+
+    const awayIndex =
+      teamPositions[0];
+
+    const homeIndex =
+      teamPositions[1];
+
+    const away =
+      after[awayIndex].toUpperCase();
+
+    const home =
+      after[homeIndex].toUpperCase();
+
+    if (
+      away !== "LOTTE" &&
+      home !== "LOTTE"
+    ) {
+      continue;
+    }
+
+    const between =
+      after.slice(
+        awayIndex + 1,
+        homeIndex
+      );
+
+    const scoreText =
+      between.find(
+        v =>
+          /^\d*\s*:\s*\d*$/.test(v)
+      ) || ":";
+
+    const sm =
+      scoreText.match(
+        /^(\d*)\s*:\s*(\d*)$/
+      );
+
+    const awayScore =
+      sm && sm[1] !== ""
+        ? Number(sm[1])
+        : null;
+
+    const homeScore =
+      sm && sm[2] !== ""
+        ? Number(sm[2])
+        : null;
+
+    const tail =
+      after.slice(homeIndex + 1);
+
+    const locationCode =
+      tail.find(
+        v =>
+          LOCATION_KO[
+            v.toUpperCase()
+          ]
+      ) || "";
+
+    const rawStatus =
+      tail.find(
+        v =>
+          /POSTPONED|CANCELLED|CANCELED|SUSPENDED/i.test(v)
+      ) || "";
+
+    let status = "예정";
+
+    if (/POSTPONED/i.test(rawStatus)) {
+      status = "연기";
+    }
+
+    else if (
+      /CANCELLED|CANCELED/i.test(
+        rawStatus
+      )
+    ) {
+      status = "취소";
+    }
+
+    else if (
+      /SUSPENDED/i.test(rawStatus)
+    ) {
+      status = "중단";
+    }
+
+    else if (
+      awayScore !== null &&
+      homeScore !== null
+    ) {
+      status = "종료";
+    }
+
+    out.push({
+      date: currentDate,
+      time: cells[timeIndex],
+      away,
+      home,
+      awayScore,
+      homeScore,
+
+      location:
+        locationCode
+          ? LOCATION_KO[
+              locationCode.toUpperCase()
+            ]
+          : "",
+
+      locationCode,
+      status
+    });
+  }
+
+  return out;
+}
+
+function scoreboardGames(html) {
+  const games = [];
+
+  const matches = [
+    ...html.matchAll(
+      /<table\b[\s\S]*?<\/table>/gi
+    )
+  ];
+
+  for (const m of matches) {
+    const parsed =
+      tables(m[0])[0];
+
+    if (
+      !parsed ||
+      parsed.rows.length < 2
+    ) {
+      continue;
+    }
+
+    const headers =
+      parsed.headers.map(
+        h => h.toUpperCase()
+      );
+
+    const teamIndex =
+      headers.findIndex(
+        h => h === "TEAM"
+      );
+
+    const rIndex =
+      headers.findIndex(
+        h => h === "R"
+      );
+
+    if (
+      teamIndex < 0 ||
+      rIndex < 0
+    ) {
+      continue;
+    }
+
+    const rows =
+      parsed.rows.filter(
+        r => r.length > rIndex
+      );
+
+    if (rows.length < 2) {
+      continue;
+    }
+
+    const away =
+      String(
+        rows[0][teamIndex] || ""
+      ).toUpperCase();
+
+    const home =
+      String(
+        rows[1][teamIndex] || ""
+      ).toUpperCase();
+
+    if (
+      away !== "LOTTE" &&
+      home !== "LOTTE"
+    ) {
+      continue;
+    }
+
+    const before =
+      cleanText(
+        html.slice(
+          Math.max(
+            0,
+            m.index - 1400
+          ),
+          m.index
+        )
+      );
+
+    const timeMatches = [
+      ...before.matchAll(
+        /\b\d{1,2}:\d{2}\b/g
+      )
+    ];
+
+    const time =
+      timeMatches.length
+        ? timeMatches[
+            timeMatches.length - 1
+          ][0]
+        : "";
+
+    let location = "";
+    let locationCode = "";
+
+    for (
+      const code of
+      Object.keys(LOCATION_KO)
+    ) {
+      if (
+        new RegExp(
+          `\\b${code}\\b`,
+          "i"
+        ).test(before)
+      ) {
+        locationCode = code;
+        location =
+          LOCATION_KO[code];
       }
     }
+
+    const n = v =>
+      /^-?\d+$/.test(
+        String(v || "")
+      )
+        ? Number(v)
+        : null;
+
+    const awayScore =
+      n(rows[0][rIndex]);
+
+    const homeScore =
+      n(rows[1][rIndex]);
+
+    const total = (row, key) => {
+      const i =
+        headers.findIndex(
+          h => h === key
+        );
+
+      return i >= 0
+        ? row[i]
+        : "";
+    };
+
+    games.push({
+      away,
+      home,
+      awayScore,
+      homeScore,
+      time,
+      location,
+      locationCode,
+
+      status:
+        /\bFINAL\b/i.test(before)
+          ? "종료"
+          : "진행 중",
+
+      totals: {
+        away: {
+          R: total(
+            rows[0],
+            "R"
+          ),
+          H: total(
+            rows[0],
+            "H"
+          ),
+          E: total(
+            rows[0],
+            "E"
+          ),
+          B: total(
+            rows[0],
+            "B"
+          )
+        },
+
+        home: {
+          R: total(
+            rows[1],
+            "R"
+          ),
+          H: total(
+            rows[1],
+            "H"
+          ),
+          E: total(
+            rows[1],
+            "E"
+          ),
+          B: total(
+            rows[1],
+            "B"
+          )
+        }
+      },
+
+      innings: {
+        headers:
+          parsed.headers,
+
+        rows:
+          rows.slice(0, 2)
+      }
+    });
   }
 
   return games;
+}
+
+function gameSortKey(g) {
+  return `${g.date || ""}T${g.time || "00:00"}`;
 }
 
 export default {
@@ -488,34 +857,200 @@ export default {
         const date =
           todayKST();
 
-        const html =
-          await get(
-            `${ENG}/Schedule/Scoreboard.aspx?searchDate=${date}`
-          );
+        const month =
+          date.slice(0, 7);
+
+        const [
+          scheduleHtml,
+          boardHtml
+        ] =
+          await Promise.all([
+            get(
+              `${ENG}/Schedule/DailySchedule.aspx?searchDate=${month}`
+            ),
+
+            get(
+              `${ENG}/Schedule/Scoreboard.aspx?searchDate=${date}`
+            ).catch(
+              () => ""
+            )
+          ]);
+
+        const scheduled =
+          parseScheduleGames(
+            scheduleHtml,
+            month
+          ).find(
+            g =>
+              g.date === date
+          ) || null;
+
+        const board =
+          boardHtml
+            ? (
+                scoreboardGames(
+                  boardHtml
+                )[0] || null
+              )
+            : null;
+
+        let game = null;
+
+        if (board) {
+          game = {
+            ...(scheduled || {}),
+            ...board,
+            date,
+
+            time:
+              board.time ||
+              (
+                scheduled &&
+                scheduled.time
+              ) ||
+              "",
+
+            location:
+              board.location ||
+              (
+                scheduled &&
+                scheduled.location
+              ) ||
+              ""
+          };
+        }
+
+        else if (scheduled) {
+          game = scheduled;
+        }
 
         payload = {
           ...payload,
           date,
+
           games:
-            scoreboard(html)
+            game
+              ? [game]
+              : []
         };
       }
 
       else if (
         type === "schedule"
       ) {
-        const month =
+        const current =
           currentMonthKST();
 
-        const html =
-          await get(
-            `${ENG}/Schedule/DailySchedule.aspx?searchDate=${month}`
+        const months = [
+          shiftMonth(
+            current,
+            -1
+          ),
+
+          current,
+
+          shiftMonth(
+            current,
+            1
+          )
+        ];
+
+        const htmls =
+          await Promise.all(
+            months.map(
+              month =>
+                get(
+                  `${ENG}/Schedule/DailySchedule.aspx?searchDate=${month}`
+                ).then(
+                  html => ({
+                    month,
+                    html
+                  })
+                )
+            )
           );
+
+        const allGames =
+          htmls
+            .flatMap(
+              ({
+                month,
+                html
+              }) =>
+                parseScheduleGames(
+                  html,
+                  month
+                )
+            )
+            .filter(
+              (
+                g,
+                i,
+                arr
+              ) =>
+                arr.findIndex(
+                  x =>
+                    x.date ===
+                      g.date &&
+                    x.time ===
+                      g.time &&
+                    x.away ===
+                      g.away &&
+                    x.home ===
+                      g.home
+                ) === i
+            )
+            .sort(
+              (a, b) =>
+                gameSortKey(a)
+                  .localeCompare(
+                    gameSortKey(b)
+                  )
+            );
+
+        const today =
+          todayKST();
+
+        const recent =
+          allGames
+            .filter(
+              g =>
+                g.status ===
+                  "종료" &&
+                g.date <= today
+            )
+            .slice(-3)
+            .reverse();
+
+        const upcoming =
+          allGames
+            .filter(
+              g =>
+                g.status ===
+                  "예정" &&
+                (
+                  g.date > today ||
+                  g.date === today
+                )
+            )
+            .slice(0, 3);
 
         payload = {
           ...payload,
-          month,
-          ...scheduleRows(html)
+
+          month:
+            current,
+
+          recent,
+
+          upcoming,
+
+          games:
+            [...recent]
+              .reverse()
+              .concat(
+                upcoming
+              )
         };
       }
 

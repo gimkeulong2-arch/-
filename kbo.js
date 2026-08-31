@@ -9,7 +9,9 @@ function decodeHtml(str = "") {
     .replace(/&#39;/gi, "'")
     .replace(/&lt;/gi, "<")
     .replace(/&gt;/gi, ">")
-    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)));
+    .replace(/&#(\d+);/g, (_, n) =>
+      String.fromCharCode(Number(n))
+    );
 }
 
 function cleanText(html = "") {
@@ -19,47 +21,67 @@ function cleanText(html = "") {
       .replace(/<style[\s\S]*?<\/style>/gi, "")
       .replace(/<br\s*\/?>/gi, " ")
       .replace(/<[^>]+>/g, " ")
-  ).replace(/\s+/g, " ").trim();
+  )
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 async function get(url) {
   const res = await fetch(url, {
     headers: {
-      "User-Agent": "Mozilla/5.0 Chrome/130 Safari/537.36",
-      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8"
+      "User-Agent":
+        "Mozilla/5.0 Chrome/130 Safari/537.36",
+
+      "Accept":
+        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+
+      "Accept-Language":
+        "ko-KR,ko;q=0.9,en;q=0.8"
     }
   });
 
   if (!res.ok) {
-    throw new Error(`KBO 요청 실패: ${res.status}`);
+    throw new Error(
+      `KBO 요청 실패: ${res.status}`
+    );
   }
 
   return await res.text();
 }
 
 function todayKST() {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Seoul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).format(new Date());
+  return new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone: "Asia/Seoul",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }
+  ).format(new Date());
 }
 
 function currentMonthKST() {
   return todayKST().slice(0, 7);
 }
 
+/* =========================================================
+   일반 HTML 테이블 파서
+========================================================= */
+
 function tables(html) {
   const result = [];
 
   const tableMatches =
-    html.match(/<table\b[\s\S]*?<\/table>/gi) || [];
+    html.match(
+      /<table\b[\s\S]*?<\/table>/gi
+    ) || [];
 
   for (const tableHtml of tableMatches) {
     const rows =
-      tableHtml.match(/<tr\b[\s\S]*?<\/tr>/gi) || [];
+      tableHtml.match(
+        /<tr\b[\s\S]*?<\/tr>/gi
+      ) || [];
 
     let headers = [];
     const body = [];
@@ -69,15 +91,22 @@ function tables(html) {
         ...row.matchAll(
           /<th\b[^>]*>([\s\S]*?)<\/th>/gi
         )
-      ].map(m => cleanText(m[1]));
+      ].map(
+        m => cleanText(m[1])
+      );
 
       const tds = [
         ...row.matchAll(
           /<td\b[^>]*>([\s\S]*?)<\/td>/gi
         )
-      ].map(m => cleanText(m[1]));
+      ].map(
+        m => cleanText(m[1])
+      );
 
-      if (ths.length && !headers.length) {
+      if (
+        ths.length &&
+        !headers.length
+      ) {
         headers = ths;
       }
 
@@ -86,7 +115,10 @@ function tables(html) {
       }
     }
 
-    if (headers.length || body.length) {
+    if (
+      headers.length ||
+      body.length
+    ) {
       result.push({
         headers,
         rows: body
@@ -97,31 +129,62 @@ function tables(html) {
   return result;
 }
 
-function normalizePlayerPath(href = "") {
-  href = decodeHtml(href).trim();
+/* =========================================================
+   선수 링크 정리
+========================================================= */
 
-  if (!href) return "";
+function normalizePlayerPath(
+  href = ""
+) {
+  href =
+    decodeHtml(href).trim();
 
-  if (/^https?:\/\//i.test(href)) {
+  if (!href) {
+    return "";
+  }
+
+  if (
+    /^https?:\/\//i.test(href)
+  ) {
     try {
-      const u = new URL(href);
+      const u =
+        new URL(href);
 
-      if (!/koreabaseball\.com$/i.test(u.hostname)) {
+      if (
+        !/koreabaseball\.com$/i.test(
+          u.hostname
+        )
+      ) {
         return "";
       }
 
-      return u.pathname + u.search;
-    } catch (_) {
+      return (
+        u.pathname +
+        u.search
+      );
+    }
+
+    catch (_) {
       return "";
     }
   }
 
   return href.startsWith("/")
     ? href
-    : "/" + href.replace(/^\.?\//, "");
+    : "/" +
+        href.replace(
+          /^\.?\//,
+          ""
+        );
 }
 
-function extractPlayers(cellHtml) {
+/* =========================================================
+   롯데 선수단
+========================================================= */
+
+function extractPlayers(
+  cellHtml
+) {
   const players = [];
 
   const anchors = [
@@ -130,34 +193,56 @@ function extractPlayers(cellHtml) {
     )
   ];
 
-  for (const m of anchors) {
+  for (
+    const m of anchors
+  ) {
     const hrefMatch =
       m[1].match(
         /href\s*=\s*["']([^"']+)["']/i
       );
 
     const label =
-      cleanText(m[2]);
+      cleanText(
+        m[2]
+      );
 
     const pm =
       label.match(
         /^(.+?)\s*\(\s*(\d{1,3})\s*\)$/
       );
 
-    if (!pm) continue;
+    if (!pm) {
+      continue;
+    }
 
     players.push({
-      name: pm[1].trim(),
-      number: pm[2],
-      path: normalizePlayerPath(
-        hrefMatch ? hrefMatch[1] : ""
-      )
+      name:
+        pm[1].trim(),
+
+      number:
+        pm[2],
+
+      path:
+        normalizePlayerPath(
+          hrefMatch
+            ? hrefMatch[1]
+            : ""
+        )
     });
   }
 
-  if (!players.length) {
+  /*
+    링크가 없을 경우
+    이름(번호) 텍스트 파싱
+  */
+
+  if (
+    !players.length
+  ) {
     const raw =
-      cleanText(cellHtml);
+      cleanText(
+        cellHtml
+      );
 
     for (
       const m of raw.matchAll(
@@ -165,39 +250,60 @@ function extractPlayers(cellHtml) {
       )
     ) {
       players.push({
-        name: m[1].trim(),
-        number: m[2],
-        path: ""
+        name:
+          m[1].trim(),
+
+        number:
+          m[2],
+
+        path:
+          ""
       });
     }
   }
 
-  const seen = new Set();
+  /*
+    중복 제거
+  */
 
-  return players.filter(p => {
-    const key =
-      `${p.name}|${p.number}`;
+  const seen =
+    new Set();
 
-    if (seen.has(key)) {
-      return false;
+  return players.filter(
+    p => {
+      const key =
+        `${p.name}|${p.number}`;
+
+      if (
+        seen.has(key)
+      ) {
+        return false;
+      }
+
+      seen.add(key);
+
+      return true;
     }
-
-    seen.add(key);
-    return true;
-  });
+  );
 }
 
-function lotteRoster(html) {
+function lotteRoster(
+  html
+) {
   const tablesHtml =
     html.match(
       /<table\b[\s\S]*?<\/table>/gi
     ) || [];
 
-  for (const tableHtml of tablesHtml) {
-    const plain =
-      cleanText(tableHtml);
-
-    if (!plain.includes("롯데")) {
+  for (
+    const tableHtml
+    of tablesHtml
+  ) {
+    if (
+      !cleanText(
+        tableHtml
+      ).includes("롯데")
+    ) {
       continue;
     }
 
@@ -206,28 +312,52 @@ function lotteRoster(html) {
         /<tr\b[\s\S]*?<\/tr>/gi
       ) || [];
 
-    for (const row of rows) {
+    for (
+      const row
+      of rows
+    ) {
       const cells = [
         ...row.matchAll(
           /<(th|td)\b[^>]*>([\s\S]*?)<\/\1>/gi
         )
-      ].map(m => m[2]);
+      ].map(
+        m => m[2]
+      );
 
-      if (cells.length < 7) {
+      if (
+        cells.length < 7
+      ) {
         continue;
       }
 
       if (
-        !cleanText(cells[0]).includes("롯데")
+        !cleanText(
+          cells[0]
+        ).includes("롯데")
       ) {
         continue;
       }
 
       return {
-        "투수": extractPlayers(cells[3]),
-        "포수": extractPlayers(cells[4]),
-        "내야수": extractPlayers(cells[5]),
-        "외야수": extractPlayers(cells[6])
+        "투수":
+          extractPlayers(
+            cells[3]
+          ),
+
+        "포수":
+          extractPlayers(
+            cells[4]
+          ),
+
+        "내야수":
+          extractPlayers(
+            cells[5]
+          ),
+
+        "외야수":
+          extractPlayers(
+            cells[6]
+          )
       };
     }
   }
@@ -237,56 +367,349 @@ function lotteRoster(html) {
   );
 }
 
-function scheduleRows(html) {
-  const ts = tables(html);
+/* =========================================================
+   선수 검색 결과 파싱
+========================================================= */
 
-  let best = null;
+function parseSearchResults(
+  html
+) {
+  const out = [];
 
-  for (const t of ts) {
+  const rows =
+    html.match(
+      /<tr\b[\s\S]*?<\/tr>/gi
+    ) || [];
+
+  for (
+    const row
+    of rows
+  ) {
+    const rawCells = [
+      ...row.matchAll(
+        /<td\b[^>]*>([\s\S]*?)<\/td>/gi
+      )
+    ].map(
+      m => m[1]
+    );
+
+    if (
+      rawCells.length < 4
+    ) {
+      continue;
+    }
+
+    const number =
+      cleanText(
+        rawCells[0]
+      ).replace(
+        /^#$/,
+        ""
+      );
+
+    const name =
+      cleanText(
+        rawCells[1]
+      );
+
+    const team =
+      cleanText(
+        rawCells[2]
+      );
+
+    const position =
+      cleanText(
+        rawCells[3]
+      );
+
+    const hrefMatch =
+      rawCells[1].match(
+        /href\s*=\s*["']([^"']+)["']/i
+      );
+
+    const path =
+      normalizePlayerPath(
+        hrefMatch
+          ? hrefMatch[1]
+          : ""
+      );
+
+    if (
+      !name ||
+      !team ||
+      !position ||
+      !path
+    ) {
+      continue;
+    }
+
+    out.push({
+      number,
+      name,
+      team,
+      position,
+      path
+    });
+  }
+
+  return out;
+}
+
+/* =========================================================
+   롯데 선수 정확히 찾기
+========================================================= */
+
+async function findLottePlayer(
+  name,
+  number = "",
+  position = ""
+) {
+  const url =
+    `${BASE}/Player/Search.aspx?searchWord=${encodeURIComponent(name)}`;
+
+  const html =
+    await get(url);
+
+  const results =
+    parseSearchResults(
+      html
+    );
+
+  const exact =
+    results.filter(
+      p =>
+        p.name === name &&
+        p.team.includes(
+          "롯데"
+        )
+    );
+
+  if (
+    !exact.length
+  ) {
+    throw new Error(
+      `${name} 선수의 롯데 검색 결과를 찾지 못했습니다.`
+    );
+  }
+
+  let picked =
+    exact.find(
+      p =>
+        number &&
+        p.number ===
+          String(number) &&
+        (
+          !position ||
+          p.position.includes(
+            position
+          )
+        )
+    );
+
+  if (!picked) {
+    picked =
+      exact.find(
+        p =>
+          number &&
+          p.number ===
+            String(number)
+      );
+  }
+
+  if (!picked) {
+    picked =
+      exact.find(
+        p =>
+          position &&
+          p.position.includes(
+            position
+          )
+      );
+  }
+
+  if (!picked) {
+    picked =
+      exact[0];
+  }
+
+  return picked;
+}
+
+/* =========================================================
+   선수 기본 정보
+========================================================= */
+
+function parseProfile(
+  html
+) {
+  const all =
+    cleanText(
+      html
+    );
+
+  function grab(
+    label
+  ) {
+    const re =
+      new RegExp(
+        `${label}\\s*:\\s*([^·|]+?)(?=\\s+(?:선수명|등번호|생년월일|포지션|신장/체중|경력|입단 계약금|연봉|지명순위|입단년도)\\s*:|$)`
+      );
+
+    const m =
+      all.match(re);
+
+    return m
+      ? m[1].trim()
+      : "";
+  }
+
+  return {
+    name:
+      grab("선수명"),
+
+    number:
+      grab("등번호")
+        .replace(
+          /^No\.?\s*/i,
+          ""
+        ),
+
+    birth:
+      grab("생년월일"),
+
+    position:
+      grab("포지션"),
+
+    size:
+      grab("신장/체중"),
+
+    career:
+      grab("경력"),
+
+    salary:
+      grab("연봉")
+  };
+}
+
+/* =========================================================
+   선수 시즌 기록 테이블
+========================================================= */
+
+function seasonTables(
+  html
+) {
+  const ts =
+    tables(html);
+
+  return ts
+    .filter(
+      t => {
+        if (
+          !t.rows.length
+        ) {
+          return false;
+        }
+
+        const joined =
+          `${t.headers.join(" ")} ${t.rows
+            .flat()
+            .join(" ")}`;
+
+        return (
+          /ERA|AVG|타율|안타|홈런|타점|득점|도루|W|L|SV|HLD|IP|SO|RBI|HR|OPS|OBP|SLG/i
+            .test(
+              joined
+            )
+        );
+      }
+    )
+    .slice(
+      0,
+      6
+    );
+}
+
+/* =========================================================
+   경기 일정
+========================================================= */
+
+function scheduleRows(
+  html
+) {
+  const ts =
+    tables(html);
+
+  let best =
+    null;
+
+  for (
+    const t of ts
+  ) {
     const joined =
       `${t.headers.join(" ")} ${t.rows
         .flat()
         .join(" ")}`;
 
     if (
-      /DATE|TIME|GAME|경기|구장/i.test(joined)
+      /DATE|TIME|GAME|경기|구장/i.test(
+        joined
+      )
     ) {
       if (
         !best ||
-        t.rows.length > best.rows.length
+        t.rows.length >
+          best.rows.length
       ) {
-        best = t;
+        best =
+          t;
       }
     }
   }
 
-  const lotteRows =
-    best
-      ? best.rows.filter(
-          r =>
-            /LOTTE|Lotte|롯데/i.test(
-              r.join(" ")
-            )
-        )
-      : [];
-
   return {
-    table: best,
-    lotteRows
+    headers:
+      best
+        ? best.headers
+        : [],
+
+    rows:
+      best
+        ? best.rows.filter(
+            r =>
+              /LOTTE|Lotte|롯데/i.test(
+                r.join(" ")
+              )
+          )
+        : []
   };
 }
 
-function scoreboard(html) {
-  const games = [];
+/* =========================================================
+   오늘 경기
+========================================================= */
 
-  for (const t of tables(html)) {
-    for (const row of t.rows) {
+function scoreboard(
+  html
+) {
+  const games =
+    [];
+
+  for (
+    const t
+    of tables(html)
+  ) {
+    for (
+      const row
+      of t.rows
+    ) {
       if (
         /LOTTE|Lotte|롯데/i.test(
           row.join(" ")
         )
       ) {
-        games.push(row);
+        games.push(
+          row
+        );
       }
     }
   }
@@ -294,40 +717,35 @@ function scoreboard(html) {
   return games;
 }
 
-function playerTables(html) {
-  return tables(html)
-    .filter(t => {
-      if (!t.rows.length) {
-        return false;
-      }
+/* =========================================================
+   Netlify Function
+========================================================= */
 
-      const joined =
-        `${t.headers.join(" ")} ${t.rows
-          .flat()
-          .join(" ")}`;
-
-      return (
-        /타율|안타|홈런|타점|득점|ERA|평균자책|승|패|세이브|홀드|AVG|RBI|HR|IP/i
-          .test(joined)
-      );
-    })
-    .slice(0, 10);
-}
-
-exports.handler = async (event) => {
+exports.handler =
+async (
+  event
+) => {
   try {
     const q =
-      event.queryStringParameters || {};
+      event.queryStringParameters ||
+      {};
 
     const type =
-      q.type || "standings";
+      q.type ||
+      "standings";
 
     let payload = {
       updatedAt:
         new Date().toISOString()
     };
 
-    if (type === "score") {
+    /* -----------------------------------------------------
+       D-1 오늘 경기
+    ----------------------------------------------------- */
+
+    if (
+      type === "score"
+    ) {
       const date =
         todayKST();
 
@@ -339,11 +757,20 @@ exports.handler = async (event) => {
       payload = {
         ...payload,
         date,
-        games: scoreboard(html)
+        games:
+          scoreboard(
+            html
+          )
       };
     }
 
-    else if (type === "schedule") {
+    /* -----------------------------------------------------
+       D-3 일정
+    ----------------------------------------------------- */
+
+    else if (
+      type === "schedule"
+    ) {
       const month =
         currentMonthKST();
 
@@ -355,32 +782,52 @@ exports.handler = async (event) => {
       payload = {
         ...payload,
         month,
-        ...scheduleRows(html)
+        ...scheduleRows(
+          html
+        )
       };
     }
 
-    else if (type === "standings") {
+    /* -----------------------------------------------------
+       D-3 순위
+    ----------------------------------------------------- */
+
+    else if (
+      type === "standings"
+    ) {
       const html =
         await get(
           `${BASE}/Record/TeamRank/TeamRankDaily.aspx`
         );
 
       const ts =
-        tables(html);
+        tables(
+          html
+        );
 
       const table =
-        ts.find(t => {
-          const h =
-            t.headers.join(" ");
+        ts.find(
+          t => {
+            const h =
+              t.headers.join(
+                " "
+              );
 
-          return (
-            h.includes("순위") &&
-            (
-              h.includes("팀명") ||
-              h.includes("팀")
-            )
-          );
-        }) || null;
+            return (
+              h.includes(
+                "순위"
+              ) &&
+              (
+                h.includes(
+                  "팀명"
+                ) ||
+                h.includes(
+                  "팀"
+                )
+              )
+            );
+          }
+        ) || null;
 
       payload = {
         ...payload,
@@ -388,89 +835,126 @@ exports.handler = async (event) => {
       };
     }
 
-    else if (type === "roster") {
+    /* -----------------------------------------------------
+       D-2 롯데 선수단
+    ----------------------------------------------------- */
+
+    else if (
+      type === "roster"
+    ) {
       const html =
         await get(
           `${BASE}/Player/RegisterAll.aspx`
         );
 
       const groups =
-        lotteRoster(html);
+        lotteRoster(
+          html
+        );
 
       payload = {
         ...payload,
-        team: "롯데",
+
+        team:
+          "롯데",
+
         groups,
+
         counts: {
           "투수":
-            groups["투수"].length,
+            groups[
+              "투수"
+            ].length,
 
           "포수":
-            groups["포수"].length,
+            groups[
+              "포수"
+            ].length,
 
           "내야수":
-            groups["내야수"].length,
+            groups[
+              "내야수"
+            ].length,
 
           "외야수":
-            groups["외야수"].length
+            groups[
+              "외야수"
+            ].length
         }
       };
     }
 
-    else if (type === "player") {
-      let path =
+    /* -----------------------------------------------------
+       ★ 선수 상세
+    ----------------------------------------------------- */
+
+    else if (
+      type === "player"
+    ) {
+      const name =
         decodeURIComponent(
-          q.path || ""
-        );
+          q.name || ""
+        ).trim();
 
-      if (!path) {
+      const number =
+        decodeURIComponent(
+          q.number || ""
+        ).trim();
+
+      const position =
+        decodeURIComponent(
+          q.position || ""
+        ).trim();
+
+      if (!name) {
         throw new Error(
-          "선수 주소가 없습니다."
+          "선수 이름이 없습니다."
         );
       }
 
-      if (/^https?:\/\//i.test(path)) {
-        const u =
-          new URL(path);
+      /*
+        이름 + 롯데 + 등번호 + 포지션으로
+        정확한 선수 찾기
+      */
 
-        if (
-          !/koreabaseball\.com$/i.test(
-            u.hostname
-          )
-        ) {
-          throw new Error(
-            "잘못된 선수 주소입니다."
-          );
-        }
-
-        path =
-          u.pathname + u.search;
-      }
-
-      if (!path.startsWith("/")) {
-        path =
-          "/" + path;
-      }
-
-      if (
-        !/^\/Player\//i.test(path)
-      ) {
-        throw new Error(
-          "잘못된 선수 주소입니다."
+      const found =
+        await findLottePlayer(
+          name,
+          number,
+          position
         );
-      }
+
+      /*
+        KBO 선수 상세 페이지 읽기
+      */
 
       const html =
         await get(
-          BASE + path
+          BASE +
+          found.path
         );
 
       payload = {
         ...payload,
-        path,
-        tables: playerTables(html)
+
+        player:
+          found,
+
+        profile:
+          parseProfile(
+            html
+          ),
+
+        tables:
+          seasonTables(
+            html
+          )
       };
     }
+
+    /* -----------------------------------------------------
+       알 수 없는 요청
+    ----------------------------------------------------- */
 
     else {
       throw new Error(
@@ -479,7 +963,8 @@ exports.handler = async (event) => {
     }
 
     return {
-      statusCode: 200,
+      statusCode:
+        200,
 
       headers: {
         "content-type":
@@ -493,13 +978,18 @@ exports.handler = async (event) => {
       },
 
       body:
-        JSON.stringify(payload)
+        JSON.stringify(
+          payload
+        )
     };
   }
 
-  catch (error) {
+  catch (
+    error
+  ) {
     return {
-      statusCode: 500,
+      statusCode:
+        500,
 
       headers: {
         "content-type":
@@ -515,9 +1005,12 @@ exports.handler = async (event) => {
       body:
         JSON.stringify({
           error:
-            error && error.message
+            error &&
+            error.message
               ? error.message
-              : String(error)
+              : String(
+                  error
+                )
         })
     };
   }

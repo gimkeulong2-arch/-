@@ -1,14 +1,2 @@
-{
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "yungangdotcom",
-  "main": "worker.js",
-  "compatibility_date": "2026-08-31",
-
-  "assets": {
-    "directory": "./",
-    "binding": "ASSETS",
-    "run_worker_first": [
-      "/api/*"
-    ]
-  }
-}
+"workers_dev": true,
+"preview_urls": true

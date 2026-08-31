@@ -1,5 +1,12 @@
 {
-  "name": "yungangdotcom-lotte-live",
-  "version": "4.0.0",
-  "private": true
+  "name": "yungangdotcom-cloudflare",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
 }

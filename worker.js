@@ -9,7 +9,9 @@ function decodeHtml(str = "") {
     .replace(/&#39;/gi, "'")
     .replace(/&lt;/gi, "<")
     .replace(/&gt;/gi, ">")
-    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)));
+    .replace(/&#(\d+);/g, (_, n) =>
+      String.fromCharCode(Number(n))
+    );
 }
 
 function cleanText(html = "") {
@@ -19,20 +21,27 @@ function cleanText(html = "") {
       .replace(/<style[\s\S]*?<\/style>/gi, "")
       .replace(/<br\s*\/?>/gi, " ")
       .replace(/<[^>]+>/g, " ")
-  ).replace(/\s+/g, " ").trim();
+  )
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 async function get(url) {
   const res = await fetch(url, {
     headers: {
-      "User-Agent": "Mozilla/5.0 Chrome/130 Safari/537.36",
-      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8"
+      "User-Agent":
+        "Mozilla/5.0 Chrome/130 Safari/537.36",
+      Accept:
+        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language":
+        "ko-KR,ko;q=0.9,en;q=0.8"
     }
   });
 
   if (!res.ok) {
-    throw new Error(`KBO 요청 실패: ${res.status}`);
+    throw new Error(
+      `KBO 요청 실패: ${res.status}`
+    );
   }
 
   return await res.text();
@@ -53,24 +62,38 @@ function currentMonthKST() {
 
 function tables(html) {
   const result = [];
-  const tableMatches = html.match(/<table\b[\s\S]*?<\/table>/gi) || [];
+
+  const tableMatches =
+    html.match(
+      /<table\b[\s\S]*?<\/table>/gi
+    ) || [];
 
   for (const tableHtml of tableMatches) {
-    const rows = tableHtml.match(/<tr\b[\s\S]*?<\/tr>/gi) || [];
+    const rows =
+      tableHtml.match(
+        /<tr\b[\s\S]*?<\/tr>/gi
+      ) || [];
 
     let headers = [];
     const body = [];
 
     for (const row of rows) {
       const ths = [
-        ...row.matchAll(/<th\b[^>]*>([\s\S]*?)<\/th>/gi)
+        ...row.matchAll(
+          /<th\b[^>]*>([\s\S]*?)<\/th>/gi
+        )
       ].map(m => cleanText(m[1]));
 
       const tds = [
-        ...row.matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)
+        ...row.matchAll(
+          /<td\b[^>]*>([\s\S]*?)<\/td>/gi
+        )
       ].map(m => cleanText(m[1]));
 
-      if (ths.length && !headers.length) {
+      if (
+        ths.length &&
+        !headers.length
+      ) {
         headers = ths;
       }
 
@@ -79,7 +102,10 @@ function tables(html) {
       }
     }
 
-    if (headers.length || body.length) {
+    if (
+      headers.length ||
+      body.length
+    ) {
       result.push({
         headers,
         rows: body
@@ -90,7 +116,9 @@ function tables(html) {
   return result;
 }
 
-function normalizePlayerPath(href = "") {
+function normalizePlayerPath(
+  href = ""
+) {
   href = decodeHtml(href).trim();
 
   if (!href) {
@@ -101,7 +129,11 @@ function normalizePlayerPath(href = "") {
     try {
       const u = new URL(href);
 
-      if (!/koreabaseball\.com$/i.test(u.hostname)) {
+      if (
+        !/koreabaseball\.com$/i.test(
+          u.hostname
+        )
+      ) {
         return "";
       }
 
@@ -113,42 +145,61 @@ function normalizePlayerPath(href = "") {
 
   return href.startsWith("/")
     ? href
-    : "/" + href.replace(/^\.?\//, "");
+    : "/" +
+        href.replace(
+          /^\.?\//,
+          ""
+        );
 }
 
-function extractPlayers(cellHtml) {
+function extractPlayers(
+  cellHtml
+) {
   const players = [];
 
   const anchors = [
-    ...cellHtml.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)
+    ...cellHtml.matchAll(
+      /<a\b([^>]*)>([\s\S]*?)<\/a>/gi
+    )
   ];
 
   for (const m of anchors) {
-    const hrefMatch = m[1].match(
-      /href\s*=\s*["']([^"']+)["']/i
-    );
+    const hrefMatch =
+      m[1].match(
+        /href\s*=\s*["']([^"']+)["']/i
+      );
 
-    const label = cleanText(m[2]);
+    const label =
+      cleanText(m[2]);
 
-    const pm = label.match(
-      /^(.+?)\s*\(\s*(\d{1,3})\s*\)$/
-    );
+    const pm =
+      label.match(
+        /^(.+?)\s*\(\s*(\d{1,3})\s*\)$/
+      );
 
     if (!pm) {
       continue;
     }
 
     players.push({
-      name: pm[1].trim(),
-      number: pm[2],
-      path: normalizePlayerPath(
-        hrefMatch ? hrefMatch[1] : ""
-      )
+      name:
+        pm[1].trim(),
+
+      number:
+        pm[2],
+
+      path:
+        normalizePlayerPath(
+          hrefMatch
+            ? hrefMatch[1]
+            : ""
+        )
     });
   }
 
   if (!players.length) {
-    const raw = cleanText(cellHtml);
+    const raw =
+      cleanText(cellHtml);
 
     for (
       const m of raw.matchAll(
@@ -156,59 +207,104 @@ function extractPlayers(cellHtml) {
       )
     ) {
       players.push({
-        name: m[1].trim(),
-        number: m[2],
+        name:
+          m[1].trim(),
+
+        number:
+          m[2],
+
         path: ""
       });
     }
   }
 
-  const seen = new Set();
+  const seen =
+    new Set();
 
-  return players.filter(p => {
-    const key = `${p.name}|${p.number}`;
+  return players.filter(
+    p => {
+      const key =
+        `${p.name}|${p.number}`;
 
-    if (seen.has(key)) {
-      return false;
+      if (
+        seen.has(key)
+      ) {
+        return false;
+      }
+
+      seen.add(key);
+
+      return true;
     }
-
-    seen.add(key);
-    return true;
-  });
+  );
 }
 
 function lotteRoster(html) {
   const tablesHtml =
-    html.match(/<table\b[\s\S]*?<\/table>/gi) || [];
+    html.match(
+      /<table\b[\s\S]*?<\/table>/gi
+    ) || [];
 
-  for (const tableHtml of tablesHtml) {
-    if (!cleanText(tableHtml).includes("롯데")) {
+  for (
+    const tableHtml
+    of tablesHtml
+  ) {
+    if (
+      !cleanText(
+        tableHtml
+      ).includes("롯데")
+    ) {
       continue;
     }
 
     const rows =
-      tableHtml.match(/<tr\b[\s\S]*?<\/tr>/gi) || [];
+      tableHtml.match(
+        /<tr\b[\s\S]*?<\/tr>/gi
+      ) || [];
 
-    for (const row of rows) {
+    for (
+      const row of rows
+    ) {
       const cells = [
         ...row.matchAll(
           /<(th|td)\b[^>]*>([\s\S]*?)<\/\1>/gi
         )
       ].map(m => m[2]);
 
-      if (cells.length < 7) {
+      if (
+        cells.length < 7
+      ) {
         continue;
       }
 
-      if (!cleanText(cells[0]).includes("롯데")) {
+      if (
+        !cleanText(
+          cells[0]
+        ).includes("롯데")
+      ) {
         continue;
       }
 
       return {
-        "투수": extractPlayers(cells[3]),
-        "포수": extractPlayers(cells[4]),
-        "내야수": extractPlayers(cells[5]),
-        "외야수": extractPlayers(cells[6])
+        투수:
+          extractPlayers(
+            cells[3]
+          ),
+
+        포수:
+          extractPlayers(
+            cells[4]
+          ),
+
+        내야수:
+          extractPlayers(
+            cells[5]
+          ),
+
+        외야수:
+          extractPlayers(
+            cells[6]
+          )
       };
     }
   }
@@ -218,11 +314,15 @@ function lotteRoster(html) {
   );
 }
 
-function parseSearchResults(html) {
+function parseSearchResults(
+  html
+) {
   const out = [];
 
   const rows =
-    html.match(/<tr\b[\s\S]*?<\/tr>/gi) || [];
+    html.match(
+      /<tr\b[\s\S]*?<\/tr>/gi
+    ) || [];
 
   for (const row of rows) {
     const rawCells = [
@@ -231,21 +331,34 @@ function parseSearchResults(html) {
       )
     ].map(m => m[1]);
 
-    if (rawCells.length < 4) {
+    if (
+      rawCells.length < 4
+    ) {
       continue;
     }
 
     const number =
-      cleanText(rawCells[0]).replace(/^#$/, "");
+      cleanText(
+        rawCells[0]
+      ).replace(
+        /^#$/,
+        ""
+      );
 
     const name =
-      cleanText(rawCells[1]);
+      cleanText(
+        rawCells[1]
+      );
 
     const team =
-      cleanText(rawCells[2]);
+      cleanText(
+        rawCells[2]
+      );
 
     const position =
-      cleanText(rawCells[3]);
+      cleanText(
+        rawCells[3]
+      );
 
     const hrefMatch =
       rawCells[1].match(
@@ -254,7 +367,9 @@ function parseSearchResults(html) {
 
     const path =
       normalizePlayerPath(
-        hrefMatch ? hrefMatch[1] : ""
+        hrefMatch
+          ? hrefMatch[1]
+          : ""
       );
 
     if (
@@ -287,16 +402,21 @@ async function findLottePlayer(
     `${BASE}/Player/Search.aspx?searchWord=` +
     encodeURIComponent(name);
 
-  const html = await get(url);
+  const html =
+    await get(url);
 
   const results =
-    parseSearchResults(html);
+    parseSearchResults(
+      html
+    );
 
   const exact =
     results.filter(
       p =>
         p.name === name &&
-        p.team.includes("롯데")
+        p.team.includes(
+          "롯데"
+        )
     );
 
   if (!exact.length) {
@@ -309,10 +429,13 @@ async function findLottePlayer(
     exact.find(
       p =>
         number &&
-        p.number === String(number) &&
+        p.number ===
+          String(number) &&
         (
           !position ||
-          p.position.includes(position)
+          p.position.includes(
+            position
+          )
         )
     );
 
@@ -321,7 +444,8 @@ async function findLottePlayer(
       exact.find(
         p =>
           number &&
-          p.number === String(number)
+          p.number ===
+            String(number)
       );
   }
 
@@ -330,26 +454,34 @@ async function findLottePlayer(
       exact.find(
         p =>
           position &&
-          p.position.includes(position)
+          p.position.includes(
+            position
+          )
       );
   }
 
   if (!picked) {
-    picked = exact[0];
+    picked =
+      exact[0];
   }
 
   return picked;
 }
 
-function parseProfile(html) {
-  const all = cleanText(html);
+function parseProfile(
+  html
+) {
+  const all =
+    cleanText(html);
 
   function grab(label) {
-    const re = new RegExp(
-      `${label}\\s*:\\s*([^·|]+?)(?=\\s+(?:선수명|등번호|생년월일|포지션|신장/체중|경력|입단 계약금|연봉|지명순위|입단년도)\\s*:|$)`
-    );
+    const re =
+      new RegExp(
+        `${label}\\s*:\\s*([^·|]+?)(?=\\s+(?:선수명|등번호|생년월일|포지션|신장/체중|경력|입단 계약금|연봉|지명순위|입단년도)\\s*:|$)`
+      );
 
-    const m = all.match(re);
+    const m =
+      all.match(re);
 
     return m
       ? m[1].trim()
@@ -357,23 +489,44 @@ function parseProfile(html) {
   }
 
   return {
-    name: grab("선수명"),
-    number: grab("등번호")
-      .replace(/^No\.?\s*/i, ""),
-    birth: grab("생년월일"),
-    position: grab("포지션"),
-    size: grab("신장/체중"),
-    career: grab("경력"),
-    salary: grab("연봉")
+    name:
+      grab("선수명"),
+
+    number:
+      grab("등번호")
+        .replace(
+          /^No\.?\s*/i,
+          ""
+        ),
+
+    birth:
+      grab("생년월일"),
+
+    position:
+      grab("포지션"),
+
+    size:
+      grab("신장/체중"),
+
+    career:
+      grab("경력"),
+
+    salary:
+      grab("연봉")
   };
 }
 
-function seasonTables(html) {
-  const ts = tables(html);
+function seasonTables(
+  html
+) {
+  const ts =
+    tables(html);
 
   return ts
     .filter(t => {
-      if (!t.rows.length) {
+      if (
+        !t.rows.length
+      ) {
         return false;
       }
 
@@ -389,8 +542,16 @@ function seasonTables(html) {
 }
 
 const TEAM_NAMES = [
-  "LG", "DOOSAN", "SAMSUNG", "LOTTE", "HANWHA",
-  "KIA", "SSG", "KIWOOM", "KT", "NC"
+  "LG",
+  "DOOSAN",
+  "SAMSUNG",
+  "LOTTE",
+  "HANWHA",
+  "KIA",
+  "SSG",
+  "KIWOOM",
+  "KT",
+  "NC"
 ];
 
 const LOCATION_KO = {
@@ -407,42 +568,83 @@ const LOCATION_KO = {
   ULSAN: "울산"
 };
 
-function shiftMonth(month, delta) {
-  const [y, m] = month.split("-").map(Number);
-  const d = new Date(Date.UTC(y, m - 1 + delta, 1));
+function shiftMonth(
+  month,
+  delta
+) {
+  const [y, m] =
+    month
+      .split("-")
+      .map(Number);
 
-  return `${d.getUTCFullYear()}-${String(
-    d.getUTCMonth() + 1
-  ).padStart(2, "0")}`;
+  const d =
+    new Date(
+      Date.UTC(
+        y,
+        m - 1 + delta,
+        1
+      )
+    );
+
+  return (
+    `${d.getUTCFullYear()}-` +
+    `${String(
+      d.getUTCMonth() + 1
+    ).padStart(2, "0")}`
+  );
 }
 
-function scheduleDateFromLabel(label, month) {
-  const m = String(label || "").match(
-    /^(\d{2})\.(\d{2})\([A-Z]{3}\)$/i
-  );
+function scheduleDateFromLabel(
+  label,
+  month
+) {
+  const m =
+    String(
+      label || ""
+    ).match(
+      /^(\d{2})\.(\d{2})\([A-Z]{3}\)$/i
+    );
 
   if (!m) {
     return "";
   }
 
-  return `${month.slice(0, 4)}-${m[1]}-${m[2]}`;
+  return (
+    `${month.slice(0, 4)}-` +
+    `${m[1]}-${m[2]}`
+  );
 }
 
-function parseScheduleGames(html, month) {
+function parseScheduleGames(
+  html,
+  month
+) {
   const out = [];
 
   const rows =
-    html.match(/<tr\b[\s\S]*?<\/tr>/gi) || [];
+    html.match(
+      /<tr\b[\s\S]*?<\/tr>/gi
+    ) || [];
 
   let currentDate = "";
 
-  for (const row of rows) {
+  const today =
+    todayKST();
+
+  for (
+    const row of rows
+  ) {
     const cells = [
       ...row.matchAll(
         /<td\b[^>]*>([\s\S]*?)<\/td>/gi
       )
     ]
-      .map(m => cleanText(m[1]))
+      .map(
+        m =>
+          cleanText(
+            m[1]
+          )
+      )
       .filter(Boolean);
 
     if (!cells.length) {
@@ -452,7 +654,9 @@ function parseScheduleGames(html, month) {
     const dateLabel =
       cells.find(
         v =>
-          /^\d{2}\.\d{2}\([A-Z]{3}\)$/i.test(v)
+          /^\d{2}\.\d{2}\([A-Z]{3}\)$/i.test(
+            v
+          )
       );
 
     if (dateLabel) {
@@ -470,29 +674,223 @@ function parseScheduleGames(html, month) {
     const timeIndex =
       cells.findIndex(
         v =>
-          /^\d{1,2}:\d{2}$/.test(v)
+          /^\d{1,2}:\d{2}$/.test(
+            v
+          )
       );
 
-    if (timeIndex < 0) {
+    if (
+      timeIndex < 0
+    ) {
       continue;
     }
 
     const after =
-      cells.slice(timeIndex + 1);
+      cells.slice(
+        timeIndex + 1
+      );
 
-    const teamPositions = [];
+    const teamPositions =
+      [];
 
-    after.forEach((v, i) => {
+    after.forEach(
+      (v, i) => {
+        const upper =
+          v.toUpperCase();
+
+        if (
+          TEAM_NAMES.includes(
+            upper
+          )
+        ) {
+          teamPositions.push(
+            i
+          );
+        }
+      }
+    );
+
+    if (
+      teamPositions.length < 2
+    ) {
+      /*
+       * KBO 페이지 구조에 따라
+       * 경기 정보가 한 셀 안에
+       * 들어가는 경우도 처리한다.
+       */
+      const joined =
+        after.join(" ");
+
+      const foundTeams =
+        [];
+
+      for (
+        const team
+        of TEAM_NAMES
+      ) {
+        const re =
+          new RegExp(
+            `\\b${team}\\b`,
+            "i"
+          );
+
+        const match =
+          joined.match(re);
+
+        if (match) {
+          foundTeams.push({
+            team,
+            index:
+              match.index
+          });
+        }
+      }
+
+      foundTeams.sort(
+        (a, b) =>
+          a.index - b.index
+      );
+
       if (
-        TEAM_NAMES.includes(
-          v.toUpperCase()
+        foundTeams.length < 2
+      ) {
+        continue;
+      }
+
+      const away =
+        foundTeams[0].team;
+
+      const home =
+        foundTeams[1].team;
+
+      if (
+        away !== "LOTTE" &&
+        home !== "LOTTE"
+      ) {
+        continue;
+      }
+
+      const scoreMatch =
+        joined.match(
+          /\b(\d{1,2})\s*[:\-]\s*(\d{1,2})\b/
+        );
+
+      const awayScore =
+        scoreMatch
+          ? Number(
+              scoreMatch[1]
+            )
+          : null;
+
+      const homeScore =
+        scoreMatch
+          ? Number(
+              scoreMatch[2]
+            )
+          : null;
+
+      let location = "";
+      let locationCode = "";
+
+      for (
+        const code
+        of Object.keys(
+          LOCATION_KO
         )
       ) {
-        teamPositions.push(i);
-      }
-    });
+        if (
+          new RegExp(
+            `\\b${code}\\b`,
+            "i"
+          ).test(
+            joined
+          )
+        ) {
+          locationCode =
+            code;
 
-    if (teamPositions.length < 2) {
+          location =
+            LOCATION_KO[
+              code
+            ];
+
+          break;
+        }
+      }
+
+      let status =
+        "예정";
+
+      if (
+        /POSTPONED/i.test(
+          joined
+        )
+      ) {
+        status =
+          "연기";
+      }
+
+      else if (
+        /CANCELLED|CANCELED/i.test(
+          joined
+        )
+      ) {
+        status =
+          "취소";
+      }
+
+      else if (
+        /SUSPENDED/i.test(
+          joined
+        )
+      ) {
+        status =
+          "중단";
+      }
+
+      else if (
+        currentDate <
+        today
+      ) {
+        /*
+         * 핵심 수정:
+         * 이미 지난 날짜인데
+         * 연기/취소 표시가 없다면
+         * 종료 경기로 처리.
+         */
+        status =
+          "종료";
+      }
+
+      else if (
+        awayScore !== null &&
+        homeScore !== null
+      ) {
+        status =
+          "종료";
+      }
+
+      out.push({
+        date:
+          currentDate,
+
+        time:
+          cells[
+            timeIndex
+          ],
+
+        away,
+        home,
+
+        awayScore,
+        homeScore,
+
+        location,
+        locationCode,
+
+        status
+      });
+
       continue;
     }
 
@@ -503,10 +901,14 @@ function parseScheduleGames(html, month) {
       teamPositions[1];
 
     const away =
-      after[awayIndex].toUpperCase();
+      after[
+        awayIndex
+      ].toUpperCase();
 
     const home =
-      after[homeIndex].toUpperCase();
+      after[
+        homeIndex
+      ].toUpperCase();
 
     if (
       away !== "LOTTE" &&
@@ -521,29 +923,74 @@ function parseScheduleGames(html, month) {
         homeIndex
       );
 
-    const scoreText =
-      between.find(
-        v =>
-          /^\d*\s*:\s*\d*$/.test(v)
-      ) || ":";
+    const betweenText =
+      between.join(" ");
 
-    const sm =
-      scoreText.match(
-        /^(\d*)\s*:\s*(\d*)$/
+    let awayScore =
+      null;
+
+    let homeScore =
+      null;
+
+    /*
+     * 7:10
+     * 7 : 10
+     * 7-10
+     * 형태 모두 처리
+     */
+    const scoreMatch =
+      betweenText.match(
+        /(\d{1,2})\s*[:\-]\s*(\d{1,2})/
       );
 
-    const awayScore =
-      sm && sm[1] !== ""
-        ? Number(sm[1])
-        : null;
+    if (scoreMatch) {
+      awayScore =
+        Number(
+          scoreMatch[1]
+        );
 
-    const homeScore =
-      sm && sm[2] !== ""
-        ? Number(sm[2])
-        : null;
+      homeScore =
+        Number(
+          scoreMatch[2]
+        );
+    }
+
+    /*
+     * 점수가 별도 숫자 셀로
+     * 나뉜 경우도 처리
+     */
+    if (
+      awayScore === null ||
+      homeScore === null
+    ) {
+      const nums =
+        between
+          .filter(
+            v =>
+              /^\d{1,2}$/.test(
+                v
+              )
+          )
+          .map(Number);
+
+      if (
+        nums.length >= 2
+      ) {
+        awayScore =
+          nums[0];
+
+        homeScore =
+          nums[1];
+      }
+    }
 
     const tail =
-      after.slice(homeIndex + 1);
+      after.slice(
+        homeIndex + 1
+      );
+
+    const tailText =
+      tail.join(" ");
 
     const locationCode =
       tail.find(
@@ -556,13 +1003,21 @@ function parseScheduleGames(html, month) {
     const rawStatus =
       tail.find(
         v =>
-          /POSTPONED|CANCELLED|CANCELED|SUSPENDED/i.test(v)
+          /POSTPONED|CANCELLED|CANCELED|SUSPENDED/i.test(
+            v
+          )
       ) || "";
 
-    let status = "예정";
+    let status =
+      "예정";
 
-    if (/POSTPONED/i.test(rawStatus)) {
-      status = "연기";
+    if (
+      /POSTPONED/i.test(
+        rawStatus
+      )
+    ) {
+      status =
+        "연기";
     }
 
     else if (
@@ -570,27 +1025,54 @@ function parseScheduleGames(html, month) {
         rawStatus
       )
     ) {
-      status = "취소";
+      status =
+        "취소";
     }
 
     else if (
-      /SUSPENDED/i.test(rawStatus)
+      /SUSPENDED/i.test(
+        rawStatus
+      )
     ) {
-      status = "중단";
+      status =
+        "중단";
+    }
+
+    else if (
+      currentDate < today
+    ) {
+      /*
+       * 이번 핵심 수정.
+       *
+       * 현재 날짜보다 이전 경기이며
+       * 연기/취소/중단 표시가 없다면
+       * 점수를 못 읽었더라도 종료 경기로
+       * 인정한다.
+       */
+      status =
+        "종료";
     }
 
     else if (
       awayScore !== null &&
       homeScore !== null
     ) {
-      status = "종료";
+      status =
+        "종료";
     }
 
     out.push({
-      date: currentDate,
-      time: cells[timeIndex],
+      date:
+        currentDate,
+
+      time:
+        cells[
+          timeIndex
+        ],
+
       away,
       home,
+
       awayScore,
       homeScore,
 
@@ -602,14 +1084,20 @@ function parseScheduleGames(html, month) {
           : "",
 
       locationCode,
-      status
+
+      status,
+
+      raw:
+        tailText
     });
   }
 
   return out;
 }
 
-function scoreboardGames(html) {
+function scoreboardGames(
+  html
+) {
   const games = [];
 
   const matches = [
@@ -620,7 +1108,9 @@ function scoreboardGames(html) {
 
   for (const m of matches) {
     const parsed =
-      tables(m[0])[0];
+      tables(
+        m[0]
+      )[0];
 
     if (
       !parsed ||
@@ -631,17 +1121,20 @@ function scoreboardGames(html) {
 
     const headers =
       parsed.headers.map(
-        h => h.toUpperCase()
+        h =>
+          h.toUpperCase()
       );
 
     const teamIndex =
       headers.findIndex(
-        h => h === "TEAM"
+        h =>
+          h === "TEAM"
       );
 
     const rIndex =
       headers.findIndex(
-        h => h === "R"
+        h =>
+          h === "R"
       );
 
     if (
@@ -653,21 +1146,29 @@ function scoreboardGames(html) {
 
     const rows =
       parsed.rows.filter(
-        r => r.length > rIndex
+        r =>
+          r.length >
+          rIndex
       );
 
-    if (rows.length < 2) {
+    if (
+      rows.length < 2
+    ) {
       continue;
     }
 
     const away =
       String(
-        rows[0][teamIndex] || ""
+        rows[0][
+          teamIndex
+        ] || ""
       ).toUpperCase();
 
     const home =
       String(
-        rows[1][teamIndex] || ""
+        rows[1][
+          teamIndex
+        ] || ""
       ).toUpperCase();
 
     if (
@@ -697,7 +1198,8 @@ function scoreboardGames(html) {
     const time =
       timeMatches.length
         ? timeMatches[
-            timeMatches.length - 1
+            timeMatches.length -
+              1
           ][0]
         : "";
 
@@ -706,95 +1208,134 @@ function scoreboardGames(html) {
 
     for (
       const code of
-      Object.keys(LOCATION_KO)
+      Object.keys(
+        LOCATION_KO
+      )
     ) {
       if (
         new RegExp(
           `\\b${code}\\b`,
           "i"
-        ).test(before)
+        ).test(
+          before
+        )
       ) {
-        locationCode = code;
+        locationCode =
+          code;
+
         location =
-          LOCATION_KO[code];
+          LOCATION_KO[
+            code
+          ];
       }
     }
 
-    const n = v =>
-      /^-?\d+$/.test(
-        String(v || "")
-      )
-        ? Number(v)
-        : null;
+    const n =
+      v =>
+        /^-?\d+$/.test(
+          String(
+            v || ""
+          )
+        )
+          ? Number(v)
+          : null;
 
     const awayScore =
-      n(rows[0][rIndex]);
+      n(
+        rows[0][
+          rIndex
+        ]
+      );
 
     const homeScore =
-      n(rows[1][rIndex]);
+      n(
+        rows[1][
+          rIndex
+        ]
+      );
 
-    const total = (row, key) => {
-      const i =
-        headers.findIndex(
-          h => h === key
-        );
+    const total =
+      (row, key) => {
+        const i =
+          headers.findIndex(
+            h =>
+              h === key
+          );
 
-      return i >= 0
-        ? row[i]
-        : "";
-    };
+        return i >= 0
+          ? row[i]
+          : "";
+      };
 
     games.push({
       away,
       home,
+
       awayScore,
       homeScore,
+
       time,
       location,
       locationCode,
 
       status:
-        /\bFINAL\b/i.test(before)
+        /\bFINAL\b/i.test(
+          before
+        )
           ? "종료"
           : "진행 중",
 
       totals: {
         away: {
-          R: total(
-            rows[0],
-            "R"
-          ),
-          H: total(
-            rows[0],
-            "H"
-          ),
-          E: total(
-            rows[0],
-            "E"
-          ),
-          B: total(
-            rows[0],
-            "B"
-          )
+          R:
+            total(
+              rows[0],
+              "R"
+            ),
+
+          H:
+            total(
+              rows[0],
+              "H"
+            ),
+
+          E:
+            total(
+              rows[0],
+              "E"
+            ),
+
+          B:
+            total(
+              rows[0],
+              "B"
+            )
         },
 
         home: {
-          R: total(
-            rows[1],
-            "R"
-          ),
-          H: total(
-            rows[1],
-            "H"
-          ),
-          E: total(
-            rows[1],
-            "E"
-          ),
-          B: total(
-            rows[1],
-            "B"
-          )
+          R:
+            total(
+              rows[1],
+              "R"
+            ),
+
+          H:
+            total(
+              rows[1],
+              "H"
+            ),
+
+          E:
+            total(
+              rows[1],
+              "E"
+            ),
+
+          B:
+            total(
+              rows[1],
+              "B"
+            )
         }
       },
 
@@ -803,7 +1344,10 @@ function scoreboardGames(html) {
           parsed.headers,
 
         rows:
-          rows.slice(0, 2)
+          rows.slice(
+            0,
+            2
+          )
       }
     });
   }
@@ -812,16 +1356,25 @@ function scoreboardGames(html) {
 }
 
 function gameSortKey(g) {
-  return `${g.date || ""}T${g.time || "00:00"}`;
+  return (
+    `${g.date || ""}T` +
+    `${g.time || "00:00"}`
+  );
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(
+    request,
+    env
+  ) {
     const url =
-      new URL(request.url);
+      new URL(
+        request.url
+      );
 
     if (
-      url.pathname !== "/api/kbo"
+      url.pathname !==
+      "/api/kbo"
     ) {
       return env.ASSETS.fetch(
         request
@@ -846,19 +1399,25 @@ export default {
         );
 
       const type =
-        q.type || "standings";
+        q.type ||
+        "standings";
 
       let payload = {
         updatedAt:
           new Date().toISOString()
       };
 
-      if (type === "score") {
+      if (
+        type === "score"
+      ) {
         const date =
           todayKST();
 
         const month =
-          date.slice(0, 7);
+          date.slice(
+            0,
+            7
+          );
 
         const [
           scheduleHtml,
@@ -882,7 +1441,8 @@ export default {
             month
           ).find(
             g =>
-              g.date === date
+              g.date ===
+              date
           ) || null;
 
         const board =
@@ -890,16 +1450,19 @@ export default {
             ? (
                 scoreboardGames(
                   boardHtml
-                )[0] || null
+                )[0] ||
+                null
               )
             : null;
 
-        let game = null;
+        let game =
+          null;
 
         if (board) {
           game = {
             ...(scheduled || {}),
             ...board,
+
             date,
 
             time:
@@ -920,12 +1483,16 @@ export default {
           };
         }
 
-        else if (scheduled) {
-          game = scheduled;
+        else if (
+          scheduled
+        ) {
+          game =
+            scheduled;
         }
 
         payload = {
           ...payload,
+
           date,
 
           games:
@@ -941,7 +1508,19 @@ export default {
         const current =
           currentMonthKST();
 
+        /*
+         * 최근 경기가 월 초에 걸쳐도
+         * 안정적으로 3개 나오게
+         * 2개월 전까지 확인한다.
+         *
+         * 예정 경기도 다음 달까지 확인.
+         */
         const months = [
+          shiftMonth(
+            current,
+            -2
+          ),
+
           shiftMonth(
             current,
             -1
@@ -1011,29 +1590,39 @@ export default {
         const today =
           todayKST();
 
+        /*
+         * 종료로 판정된 과거 경기 중
+         * 가장 최근 3개.
+         */
         const recent =
           allGames
             .filter(
               g =>
                 g.status ===
                   "종료" &&
-                g.date <= today
+                g.date <
+                  today
             )
             .slice(-3)
             .reverse();
 
+        /*
+         * 오늘 이후 예정 경기 중
+         * 가장 가까운 3개.
+         */
         const upcoming =
           allGames
             .filter(
               g =>
                 g.status ===
                   "예정" &&
-                (
-                  g.date > today ||
-                  g.date === today
-                )
+                g.date >=
+                  today
             )
-            .slice(0, 3);
+            .slice(
+              0,
+              3
+            );
 
         payload = {
           ...payload,
@@ -1055,7 +1644,8 @@ export default {
       }
 
       else if (
-        type === "standings"
+        type ===
+        "standings"
       ) {
         const html =
           await get(
@@ -1066,18 +1656,28 @@ export default {
           tables(html);
 
         const table =
-          ts.find(t => {
-            const h =
-              t.headers.join(" ");
+          ts.find(
+            t => {
+              const h =
+                t.headers.join(
+                  " "
+                );
 
-            return (
-              h.includes("순위") &&
-              (
-                h.includes("팀명") ||
-                h.includes("팀")
-              )
-            );
-          }) || null;
+              return (
+                h.includes(
+                  "순위"
+                ) &&
+                (
+                  h.includes(
+                    "팀명"
+                  ) ||
+                  h.includes(
+                    "팀"
+                  )
+                )
+              );
+            }
+          ) || null;
 
         payload = {
           ...payload,
@@ -1094,7 +1694,9 @@ export default {
           );
 
         const groups =
-          lotteRoster(html);
+          lotteRoster(
+            html
+          );
 
         payload = {
           ...payload,
@@ -1105,17 +1707,25 @@ export default {
           groups,
 
           counts: {
-            "투수":
-              groups["투수"].length,
+            투수:
+              groups[
+                "투수"
+              ].length,
 
-            "포수":
-              groups["포수"].length,
+            포수:
+              groups[
+                "포수"
+              ].length,
 
-            "내야수":
-              groups["내야수"].length,
+            내야수:
+              groups[
+                "내야수"
+              ].length,
 
-            "외야수":
-              groups["외야수"].length
+            외야수:
+              groups[
+                "외야수"
+              ].length
           }
         };
       }
@@ -1124,13 +1734,20 @@ export default {
         type === "player"
       ) {
         const name =
-          (q.name || "").trim();
+          (
+            q.name || ""
+          ).trim();
 
         const number =
-          (q.number || "").trim();
+          (
+            q.number || ""
+          ).trim();
 
         const position =
-          (q.position || "").trim();
+          (
+            q.position ||
+            ""
+          ).trim();
 
         if (!name) {
           throw new Error(
@@ -1147,7 +1764,8 @@ export default {
 
         const html =
           await get(
-            BASE + found.path
+            BASE +
+            found.path
           );
 
         payload = {
@@ -1157,10 +1775,14 @@ export default {
             found,
 
           profile:
-            parseProfile(html),
+            parseProfile(
+              html
+            ),
 
           tables:
-            seasonTables(html)
+            seasonTables(
+              html
+            )
         };
       }
 
@@ -1171,7 +1793,9 @@ export default {
       }
 
       return new Response(
-        JSON.stringify(payload),
+        JSON.stringify(
+          payload
+        ),
         {
           status: 200,
           headers
@@ -1186,7 +1810,9 @@ export default {
             error &&
             error.message
               ? error.message
-              : String(error)
+              : String(
+                  error
+                )
         }),
         {
           status: 500,

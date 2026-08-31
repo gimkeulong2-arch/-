@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 
-<title>윤강닷컴 · LOTTE LIVE V5</title>
+<title>윤강닷컴</title>
 
 <style>
 :root{
@@ -16,12 +16,16 @@
   --muted:#929baa;
   --accent:#d9ff5a;
   --green:#4dd17a;
-  --orange:#ffb24a
+  --orange:#ffb24a;
 }
 
 *{
   box-sizing:border-box;
-  -webkit-tap-highlight-color:transparent
+  -webkit-tap-highlight-color:transparent;
+}
+
+html{
+  background:var(--bg);
 }
 
 body{
@@ -33,34 +37,38 @@ body{
     BlinkMacSystemFont,
     "Pretendard",
     "Noto Sans KR",
-    sans-serif
+    sans-serif;
 }
 
 button,
 input,
 textarea,
 select{
-  font:inherit
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
 }
 
 .app{
   max-width:520px;
   margin:auto;
   min-height:100svh;
-  padding:22px 18px 40px
+  padding:22px 18px 40px;
 }
 
 header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:28px
+  margin-bottom:28px;
 }
 
 .brand{
   font-weight:900;
   letter-spacing:.18em;
-  font-size:13px
+  font-size:13px;
 }
 
 .home{
@@ -69,7 +77,7 @@ header{
   padding:11px 14px;
   background:var(--card2);
   color:var(--text);
-  font-weight:800
+  font-weight:800;
 }
 
 .kicker{
@@ -77,25 +85,25 @@ header{
   color:var(--accent);
   font-weight:900;
   letter-spacing:.1em;
-  margin-bottom:10px
+  margin-bottom:10px;
 }
 
 h1{
   font-size:32px;
   line-height:1.18;
   margin:0 0 10px;
-  letter-spacing:-.04em
+  letter-spacing:-.04em;
 }
 
 .desc{
   color:var(--muted);
   line-height:1.7;
-  margin:0 0 24px
+  margin:0 0 24px;
 }
 
 .grid{
   display:grid;
-  gap:11px
+  gap:11px;
 }
 
 .choice{
@@ -105,18 +113,22 @@ h1{
   background:var(--card);
   color:var(--text);
   padding:18px;
-  text-align:left
+  text-align:left;
+}
+
+.choice:active{
+  transform:scale(.99);
 }
 
 .choice strong{
   display:block;
-  font-size:17px
+  font-size:17px;
 }
 
 .choice small{
   display:block;
   margin-top:5px;
-  color:var(--muted)
+  color:var(--muted);
 }
 
 .back{
@@ -125,7 +137,7 @@ h1{
   padding:14px;
   border:0;
   background:transparent;
-  color:var(--muted)
+  color:var(--muted);
 }
 
 .row{
@@ -133,12 +145,12 @@ h1{
   align-items:center;
   gap:10px;
   padding:13px 0;
-  border-bottom:1px solid var(--line)
+  border-bottom:1px solid var(--line);
 }
 
 .row .code{
   flex:1;
-  word-break:break-all
+  word-break:break-all;
 }
 
 .action{
@@ -147,14 +159,14 @@ h1{
   padding:10px 12px;
   background:var(--accent);
   color:#111;
-  font-weight:900
+  font-weight:900;
 }
 
 .editor{
   background:var(--card);
   border:1px solid var(--line);
   border-radius:20px;
-  padding:16px
+  padding:16px;
 }
 
 textarea,
@@ -166,12 +178,12 @@ select{
   border:1px solid var(--line);
   border-radius:14px;
   padding:13px;
-  font-size:16px
+  font-size:16px;
 }
 
 textarea{
   min-height:160px;
-  resize:vertical
+  resize:vertical;
 }
 
 .save{
@@ -182,14 +194,14 @@ textarea{
   padding:14px;
   background:var(--accent);
   color:#111;
-  font-weight:900
+  font-weight:900;
 }
 
 .note{
   font-size:12px;
   color:var(--muted);
   line-height:1.6;
-  margin-top:12px
+  margin-top:12px;
 }
 
 .placeholder{
@@ -198,25 +210,25 @@ textarea{
   border-radius:20px;
   padding:22px;
   color:var(--muted);
-  line-height:1.7
+  line-height:1.7;
 }
 
 .label{
   font-size:12px;
   color:var(--muted);
   font-weight:800;
-  margin:12px 0 7px
+  margin:12px 0 7px;
 }
 
 .manageItem{
   display:flex;
   gap:8px;
   align-items:center;
-  margin-top:9px
+  margin-top:9px;
 }
 
 .manageItem input{
-  flex:1
+  flex:1;
 }
 
 .del{
@@ -224,26 +236,26 @@ textarea{
   border-radius:12px;
   background:#2a1a1d;
   color:#ff8b8b;
-  padding:11px
+  padding:11px;
 }
 
 .infoCard{
   background:var(--card);
   border:1px solid var(--line);
   border-radius:22px;
-  padding:20px
+  padding:20px;
 }
 
 .infoCard h2{
   margin:0 0 10px;
-  font-size:25px
+  font-size:25px;
 }
 
 .infoCard p{
   white-space:pre-wrap;
   color:var(--muted);
   line-height:1.75;
-  margin:0
+  margin:0;
 }
 
 .textEditBtn{
@@ -252,7 +264,7 @@ textarea{
   padding:11px 14px;
   background:var(--accent);
   color:#111;
-  font-weight:900
+  font-weight:900;
 }
 
 .editOverlay{
@@ -261,17 +273,17 @@ textarea{
   inset:0;
   z-index:100;
   background:var(--bg);
-  overflow:auto
+  overflow:auto;
 }
 
 .editOverlay.open{
-  display:block
+  display:block;
 }
 
 .editWrap{
   max-width:520px;
   margin:auto;
-  padding:22px 18px 44px
+  padding:22px 18px 44px;
 }
 
 .editHead{
@@ -284,12 +296,12 @@ textarea{
   background:rgba(11,13,17,.96);
   backdrop-filter:blur(12px);
   padding:10px 0 14px;
-  z-index:3
+  z-index:3;
 }
 
 .editHead h2{
   margin:0;
-  font-size:21px
+  font-size:21px;
 }
 
 .editSection{
@@ -297,12 +309,12 @@ textarea{
   border:1px solid var(--line);
   border-radius:20px;
   padding:16px;
-  margin:12px 0
+  margin:12px 0;
 }
 
 .editSection h3{
   margin:0 0 13px;
-  font-size:14px
+  font-size:14px;
 }
 
 .editLabel{
@@ -310,7 +322,7 @@ textarea{
   color:var(--muted);
   font-size:11px;
   font-weight:800;
-  margin:11px 0 6px
+  margin:11px 0 6px;
 }
 
 .editInput{
@@ -320,21 +332,21 @@ textarea{
   border:1px solid var(--line);
   border-radius:13px;
   padding:12px;
-  font-size:16px
+  font-size:16px;
 }
 
 .editActions{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:9px;
-  margin-top:16px
+  margin-top:16px;
 }
 
 .editMenu{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:12px;
-  margin-top:16px
+  margin-top:16px;
 }
 
 .editMenuBtn{
@@ -346,7 +358,7 @@ textarea{
   font-size:24px;
   font-weight:900;
   text-align:left;
-  padding:18px
+  padding:18px;
 }
 
 .editMenuBtn small{
@@ -354,7 +366,7 @@ textarea{
   color:var(--muted);
   font-size:12px;
   font-weight:700;
-  margin-top:6px
+  margin-top:6px;
 }
 
 .editBack{
@@ -362,14 +374,14 @@ textarea{
   background:transparent;
   color:var(--muted);
   font-weight:800;
-  padding:10px 2px
+  padding:10px 2px;
 }
 
 .urlHint{
   font-size:11px;
   color:var(--muted);
   line-height:1.5;
-  margin-top:5px
+  margin-top:5px;
 }
 
 .backupBox{
@@ -377,48 +389,52 @@ textarea{
   padding:14px;
   border:1px solid var(--line);
   border-radius:18px;
-  background:var(--card)
+  background:var(--card);
 }
 
 .backupBox h3{
   margin:0 0 8px;
-  font-size:14px
+  font-size:14px;
 }
 
 .backupActions{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:9px
+  gap:9px;
 }
 
 .fileInput{
-  display:none
+  display:none;
 }
+
+/* ================================
+   KBO
+================================ */
 
 .kboBox{
   margin-top:14px;
   padding:14px;
   border:1px solid var(--line);
   border-radius:16px;
-  background:var(--card)
+  background:var(--card);
 }
 
 .kboTitle{
   font-weight:800;
-  margin-bottom:10px
+  margin-bottom:10px;
 }
 
 .kboMuted{
   color:var(--muted);
   font-size:12px;
-  line-height:1.55
+  line-height:1.55;
 }
 
 .kboGrid{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:8px;
-  margin-top:10px
+  margin-top:10px;
 }
 
 .kboPlayer{
@@ -427,13 +443,17 @@ textarea{
   border-radius:13px;
   background:transparent;
   color:var(--text);
-  text-align:left
+  text-align:left;
+}
+
+.kboPlayer:active{
+  background:var(--card2);
 }
 
 .kboPlayer small{
   display:block;
   color:var(--muted);
-  margin-top:3px
+  margin-top:3px;
 }
 
 .kboTable{
@@ -441,25 +461,26 @@ textarea{
   border-collapse:collapse;
   font-size:12px;
   margin-top:8px;
-  min-width:520px
+  min-width:520px;
 }
 
 .kboTable td,
 .kboTable th{
-  padding:8px 4px;
+  padding:8px 5px;
   border-bottom:1px solid var(--line);
-  text-align:center
+  text-align:center;
+  white-space:nowrap;
 }
 
 .kboTable th{
-  color:var(--muted)
+  color:var(--muted);
 }
 
 .kboLiveHead{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  gap:10px
+  gap:10px;
 }
 
 .kboRefresh{
@@ -468,53 +489,131 @@ textarea{
   background:transparent;
   color:var(--text);
   padding:8px 10px;
-  font-weight:700
+  font-weight:700;
 }
 
 .kboScore{
   font-size:30px;
   font-weight:900;
-  margin:10px 0
+  margin:10px 0;
 }
 
 .kboGame{
   padding:13px;
   border:1px solid var(--line);
   border-radius:14px;
-  margin-top:10px
+  margin-top:10px;
 }
 
 .kboTableWrap{
   overflow-x:auto;
-  -webkit-overflow-scrolling:touch
+  -webkit-overflow-scrolling:touch;
 }
 
 .kboError{
   padding:12px;
-  border:1px solid var(--line);
+  border:1px solid #5b2930;
+  background:#25171a;
   border-radius:13px;
   margin-top:10px;
-  color:var(--muted)
+  color:#ffb6bd;
+  line-height:1.65;
 }
 
 .kboSection{
-  margin-top:16px
+  margin-top:22px;
 }
 
 .kboLoading{
   padding:16px;
   text-align:center;
-  color:var(--muted)
+  color:var(--muted);
+}
+
+.playerHero{
+  background:
+    linear-gradient(
+      135deg,
+      #171c26,
+      #11141a
+    );
+}
+
+.playerName{
+  font-size:29px;
+  font-weight:950;
+  letter-spacing:-.05em;
+}
+
+.playerSub{
+  margin-top:7px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+.playerStats{
+  display:grid;
+  grid-template-columns:
+    repeat(2,minmax(0,1fr));
+  gap:9px;
+  margin-top:13px;
+}
+
+.statCard{
+  background:var(--card2);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:14px 10px;
+  text-align:center;
+}
+
+.statLabel{
+  color:var(--muted);
+  font-size:11px;
+  font-weight:800;
+  margin-bottom:7px;
+}
+
+.statValue{
+  font-size:20px;
+  font-weight:900;
+  letter-spacing:-.03em;
+}
+
+.playerInfoRow{
+  padding:10px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.playerInfoRow:last-child{
+  border-bottom:0;
+}
+
+.playerInfoLabel{
+  color:var(--muted);
+  font-size:11px;
+  margin-bottom:4px;
+}
+
+.playerInfoValue{
+  font-weight:800;
+  line-height:1.5;
 }
 </style>
 
 <link rel="manifest" href="./manifest.webmanifest">
 
-<meta name="theme-color" content="#111111">
+<meta name="theme-color" content="#0b0d11">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="윤강닷컴">
+<meta
+  name="apple-mobile-web-app-status-bar-style"
+  content="black-translucent"
+>
+<meta
+  name="apple-mobile-web-app-title"
+  content="윤강닷컴"
+>
 
 <link rel="icon" href="./icon-192.png">
 <link rel="apple-touch-icon" href="./icon-192.png">
@@ -531,7 +630,7 @@ textarea{
   class="brand"
   id="brandText"
 >
-PATH
+윤강닷컴
 </div>
 
 <div style="display:flex;gap:8px">
@@ -590,6 +689,10 @@ PATH
 
 <script>
 
+/* =====================================================
+   저장 키
+===================================================== */
+
 const K1="path-option1-data";
 const K2="path-option2-data";
 const KC="path-option-c-planner";
@@ -598,91 +701,95 @@ const KT="path-site-text-v1";
 const KL="path-site-links-v1";
 
 
+/* =====================================================
+   기본 텍스트
+===================================================== */
+
 const DEFAULT_TEXT={
 
-  "brand":"윤강닷컴",
+  brand:"윤강닷컴",
 
-  "rootKicker":"STEP 1",
+  rootKicker:"STEP 1",
 
-  "rootTitle":"원하는 항목을 선택하세요",
+  rootTitle:"원하는 항목을 선택하세요",
 
-  "rootDesc":"첫 화면에는 4개의 선택지가 있습니다.",
+  rootDesc:"첫 화면에는 4개의 선택지가 있습니다.",
 
-  "root1":"흐흐흐",
+  root1:"흐흐흐",
 
-  "root1Sub":"",
+  root1Sub:"",
 
-  "root2":"시험범위",
+  root2:"시험범위",
 
-  "root2Sub":"",
+  root2Sub:"",
 
-  "root3":"이번주할일",
+  root3:"이번주할일",
 
-  "root3Sub":"",
+  root3Sub:"",
 
-  "root4":"개발중",
+  root4:"롯데 자이언츠",
 
-  "root4Sub":".",
+  root4Sub:"KBO 실시간 정보",
 
-  "oneTitle":"뭐할낀데",
+  oneTitle:"뭐할낀데",
 
-  "oneDesc":"",
+  oneDesc:"",
 
-  "oneA":"만화",
+  oneA:"만화",
 
-  "oneASub":"",
+  oneASub:"",
 
-  "oneB":"영상",
+  oneB:"영상",
 
-  "oneBSub":"",
+  oneBSub:"",
 
-  "oneATitle":"히토시마",
+  oneATitle:"히토시마",
 
-  "oneADesc":"",
+  oneADesc:"",
 
-  "dataView":"보러가기",
+  dataView:"보러가기",
 
-  "dataViewSub":"",
+  dataViewSub:"",
 
-  "dataEdit":"품번입력",
+  dataEdit:"품번입력",
 
-  "dataEditSub":"",
+  dataEditSub:"",
 
-  "oneBTitle":"어디서볼래",
+  oneBTitle:"어디서볼래",
 
-  "oneBDesc":"",
+  oneBDesc:"",
 
-  "twoTitle":"이번 시험범위 ",
+  twoTitle:"이번 시험범위",
 
-  "twoDesc":"",
+  twoDesc:"",
 
-  "twoA":"시험범위 보기",
+  twoA:"시험범위 보기",
 
-  "twoASub":"",
+  twoASub:"",
 
-  "twoB":"시험범위 입력하기",
+  twoB:"시험범위 입력하기",
 
-  "twoBSub":"",
+  twoBSub:"",
 
-  "twoC":"필기하기",
+  twoC:"필기하기",
 
-  "twoCSub":"",
+  twoCSub:"",
 
-  "cTitle":"일별 할일 보기",
+  cTitle:"일별 할일 보기",
 
-  "cDesc":"",
+  cDesc:"",
 
-  "cView":"이번주 계획",
+  cView:"이번주 계획",
 
-  "cViewSub":"",
+  cViewSub:"",
 
-  "cEdit":"계획 작성",
+  cEdit:"계획 작성",
 
-  "cEditSub":"",
+  cEditSub:"",
 
-  "dTitle":"최지원김은우박서준130",
+  dTitle:"롯데 자이언츠",
 
-  "dDesc":"",
+  dDesc:"KBO 공식 데이터를 윤강닷컴 안에서 확인합니다.",
 
   "group-name-0":"국어",
 
@@ -703,33 +810,57 @@ const DEFAULT_TEXT={
 };
 
 
-let txt=
-JSON.parse(
-  localStorage.getItem(KT)
-  ||
-  JSON.stringify(DEFAULT_TEXT)
-);
+let txt;
 
+try{
+
+  txt=
+  JSON.parse(
+    localStorage.getItem(KT)
+  )
+  ||
+  JSON.parse(
+    JSON.stringify(
+      DEFAULT_TEXT
+    )
+  );
+
+}catch(e){
+
+  txt=
+  JSON.parse(
+    JSON.stringify(
+      DEFAULT_TEXT
+    )
+  );
+
+}
+
+
+/* =====================================================
+   링크
+===================================================== */
 
 const DEFAULT_LINKS={
 
-  "oneABase":"https://hitomi.la/reader/",
+  oneABase:
+  "https://hitomi.la/reader/",
 
-  "oneB":[
+  oneB:[
 
     {
-      "title":"약간더 새롭게",
-      "url":"https://yandex.com/search/touch/?text=%EC%95%BC%EB%8F%99&lr=47156&mda=0&search_source=yacom_touch_common"
+      title:"약간더 새롭게",
+      url:"https://yandex.com/"
     },
 
     {
-      "title":"레야",
-      "url":"https://lover938.net/index.php?mid=link1&category=12870&document_srl=34415"
+      title:"레야",
+      url:"https://www.google.com/"
     },
 
     {
-      "title":"야파",
-      "url":"https://ydparty06.tv/"
+      title:"야파",
+      url:"https://www.google.com/"
     }
 
   ]
@@ -737,105 +868,190 @@ const DEFAULT_LINKS={
 };
 
 
-let links=
-JSON.parse(
-  localStorage.getItem(KL)
-  ||
-  JSON.stringify(DEFAULT_LINKS)
-);
+let links;
 
+try{
+
+  links=
+  JSON.parse(
+    localStorage.getItem(KL)
+  )
+  ||
+  JSON.parse(
+    JSON.stringify(
+      DEFAULT_LINKS
+    )
+  );
+
+}catch(e){
+
+  links=
+  JSON.parse(
+    JSON.stringify(
+      DEFAULT_LINKS
+    )
+  );
+
+}
+
+
+/* =====================================================
+   기본 상태
+===================================================== */
 
 let page="root";
 
 let ctx={};
 
 
-let data1=
-JSON.parse(
-  localStorage.getItem(K1)
+let data1;
+
+try{
+
+  data1=
+  JSON.parse(
+    localStorage.getItem(K1)
+  )
   ||
-  '["abcdefg","hijklm","123456"]'
-);
+  [
+    "abcdefg",
+    "hijklm",
+    "123456"
+  ];
+
+}catch(e){
+
+  data1=[
+    "abcdefg",
+    "hijklm",
+    "123456"
+  ];
+
+}
 
 
-let planner=
-JSON.parse(
-  localStorage.getItem(KC)
+let planner;
+
+try{
+
+  planner=
+  JSON.parse(
+    localStorage.getItem(KC)
+  )
   ||
-  JSON.stringify({
-
+  {
     "월요일":[],
-
     "화요일":[],
-
     "수요일":[],
-
     "목요일":[],
-
     "금요일":[],
-
     "토요일":[],
-
     "일요일":[]
+  };
 
-  })
-);
+}catch(e){
+
+  planner={
+    "월요일":[],
+    "화요일":[],
+    "수요일":[],
+    "목요일":[],
+    "금요일":[],
+    "토요일":[],
+    "일요일":[]
+  };
+
+}
 
 
-let data2=
-JSON.parse(
-  localStorage.getItem(K2)
+let data2;
+
+try{
+
+  data2=
+  JSON.parse(
+    localStorage.getItem(K2)
+  )
   ||
-  JSON.stringify({
-
-    "groups":[
-
+  {
+    groups:[
       {
-        "name":"국어",
-        "choices":[]
+        name:"국어",
+        choices:[]
       },
-
       {
-        "name":"영어",
-        "choices":[]
+        name:"영어",
+        choices:[]
       },
-
       {
-        "name":"수학",
-        "choices":[]
+        name:"수학",
+        choices:[]
       },
-
       {
-        "name":"역사",
-        "choices":[]
+        name:"역사",
+        choices:[]
       },
-
       {
-        "name":"과학",
-        "choices":[]
+        name:"과학",
+        choices:[]
       },
-
       {
-        "name":"도덕",
-        "choices":[]
+        name:"도덕",
+        choices:[]
       },
-
       {
-        "name":"기가",
-        "choices":[]
+        name:"기가",
+        choices:[]
       },
-
       {
-        "name":"정보",
-        "choices":[]
+        name:"정보",
+        choices:[]
       }
-
     ],
+    info:{}
+  };
 
-    "info":{}
+}catch(e){
 
-  })
-);
+  data2={
+    groups:[
+      {
+        name:"국어",
+        choices:[]
+      },
+      {
+        name:"영어",
+        choices:[]
+      },
+      {
+        name:"수학",
+        choices:[]
+      },
+      {
+        name:"역사",
+        choices:[]
+      },
+      {
+        name:"과학",
+        choices:[]
+      },
+      {
+        name:"도덕",
+        choices:[]
+      },
+      {
+        name:"기가",
+        choices:[]
+      },
+      {
+        name:"정보",
+        choices:[]
+      }
+    ],
+    info:{}
+  };
+
+}
 
 
 const screen=
@@ -843,6 +1059,10 @@ document.getElementById(
   "screen"
 );
 
+
+/* =====================================================
+   공용 UI
+===================================================== */
 
 function save2(){
 
@@ -854,20 +1074,24 @@ function save2(){
 }
 
 
-function shell(k,t,d){
+function shell(
+  k,
+  t,
+  d
+){
 
   screen.innerHTML=`
 
     <div class="kicker">
-      ${k}
+      ${escapeBasic(k)}
     </div>
 
     <h1>
-      ${t}
+      ${escapeBasic(t)}
     </h1>
 
     <p class="desc">
-      ${d}
+      ${escapeBasic(d)}
     </p>
 
   `;
@@ -875,7 +1099,38 @@ function shell(k,t,d){
 }
 
 
-function choice(t,s,fn){
+function escapeBasic(x){
+
+  return String(
+    x ?? ""
+  ).replace(
+
+    /[&<>"']/g,
+
+    m=>({
+
+      "&":"&amp;",
+
+      "<":"&lt;",
+
+      ">":"&gt;",
+
+      '"':"&quot;",
+
+      "'":"&#39;"
+
+    }[m])
+
+  );
+
+}
+
+
+function choice(
+  t,
+  s,
+  fn
+){
 
   const b=
   document.createElement(
@@ -955,6 +1210,11 @@ function back(target){
 
     render();
 
+    window.scrollTo(
+      0,
+      0
+    );
+
   };
 
   screen.appendChild(
@@ -964,12 +1224,19 @@ function back(target){
 }
 
 
-function key(g,c){
+function key(
+  g,
+  c
+){
 
   return `${g}::${c}`;
 
 }
 
+
+/* =====================================================
+   페이지
+===================================================== */
 
 function render(){
 
@@ -1025,6 +1292,10 @@ function render(){
 
   }
 
+
+  /* ===================================================
+     A
+  =================================================== */
 
   if(page==="one"){
 
@@ -1109,8 +1380,28 @@ function render(){
     shell(
       "1-A · 데이터 보기",
       "저장된 데이터",
-      "각 줄의 [이거다]를 누르면 해당 값이 들어간 주소로 이동합니다."
+      "각 항목의 버튼을 누르면 연결된 주소로 이동합니다."
     );
+
+
+    if(!data1.length){
+
+      const empty=
+      document.createElement(
+        "div"
+      );
+
+      empty.className=
+      "placeholder";
+
+      empty.textContent=
+      "저장된 데이터가 없습니다.";
+
+      screen.appendChild(
+        empty
+      );
+
+    }
 
 
     data1.forEach(v=>{
@@ -1229,7 +1520,9 @@ function render(){
       data1=
       ta.value
       .split("\n")
-      .map(x=>x.trim())
+      .map(
+        x=>x.trim()
+      )
       .filter(Boolean);
 
 
@@ -1286,10 +1579,14 @@ function render(){
 
           "외부 사이트로 이동",
 
-          ()=>window.open(
-            item.url,
-            "_blank"
-          )
+          ()=>{
+
+            window.open(
+              item.url,
+              "_blank"
+            );
+
+          }
 
         )
 
@@ -1307,562 +1604,9 @@ function render(){
   }
 
 
-  if(page==="c"){
-
-    shell(
-      "C · PLANNER",
-      txt.cTitle,
-      txt.cDesc
-    );
-
-
-    grid(
-
-      choice(
-        txt.cView,
-        txt.cViewSub,
-        ()=>{
-          page="c_view_days";
-          render();
-        }
-      ),
-
-      choice(
-        txt.cEdit,
-        txt.cEditSub,
-        ()=>{
-          page="c_edit_days";
-          render();
-        }
-      )
-
-    );
-
-
-    back(
-      "root"
-    );
-
-    return;
-
-  }
-
-
-  if(page==="c_view_days"){
-
-    shell(
-      "C-1",
-      "요일을 선택하세요",
-      "선택한 요일의 할 일을 확인합니다."
-    );
-
-
-    const days=[
-      "월요일",
-      "화요일",
-      "수요일",
-      "목요일",
-      "금요일",
-      "토요일",
-      "일요일"
-    ];
-
-
-    grid(
-
-      ...days.map(
-
-        day=>
-
-        choice(
-
-          day,
-
-          `${(planner[day]||[]).length}개 할 일`,
-
-          ()=>{
-
-            ctx.day=day;
-
-            page=
-            "c_view_list";
-
-            render();
-
-          }
-
-        )
-
-      )
-
-    );
-
-
-    back(
-      "c"
-    );
-
-    return;
-
-  }
-
-
-  if(page==="c_view_list"){
-
-    const day=
-    ctx.day;
-
-
-    shell(
-      "C-1 · 할 일 확인",
-      day,
-      "저장된 할 일입니다."
-    );
-
-
-    const items=
-    planner[day] || [];
-
-
-    if(!items.length){
-
-      const p=
-      document.createElement(
-        "div"
-      );
-
-      p.className=
-      "placeholder";
-
-      p.textContent=
-      "등록된 할 일이 없습니다.";
-
-      screen.appendChild(
-        p
-      );
-
-    }
-
-    else{
-
-      items.forEach(item=>{
-
-        const r=
-        document.createElement(
-          "div"
-        );
-
-        r.className=
-        "row";
-
-
-        const c=
-        document.createElement(
-          "div"
-        );
-
-        c.className=
-        "code";
-
-        c.textContent=
-        item;
-
-
-        r.appendChild(
-          c
-        );
-
-        screen.appendChild(
-          r
-        );
-
-      });
-
-    }
-
-
-    back(
-      "c_view_days"
-    );
-
-    return;
-
-  }
-
-
-  if(page==="c_edit_days"){
-
-    shell(
-      "C-2",
-      "요일을 선택하세요",
-      "선택한 요일의 할 일을 입력합니다."
-    );
-
-
-    const days=[
-      "월요일",
-      "화요일",
-      "수요일",
-      "목요일",
-      "금요일",
-      "토요일",
-      "일요일"
-    ];
-
-
-    grid(
-
-      ...days.map(
-
-        day=>
-
-        choice(
-
-          day,
-
-          `${(planner[day]||[]).length}개 저장됨`,
-
-          ()=>{
-
-            ctx.day=day;
-
-            page=
-            "c_edit";
-
-            render();
-
-          }
-
-        )
-
-      )
-
-    );
-
-
-    back(
-      "c"
-    );
-
-    return;
-
-  }
-
-
-  if(page==="c_edit"){
-
-    const day=
-    ctx.day;
-
-
-    shell(
-      "C-2 · 할 일 입력",
-      day,
-      "한 줄에 하나씩 입력하세요. 저장하면 기존 내용이 새 내용으로 바뀝니다."
-    );
-
-
-    const e=
-    document.createElement(
-      "div"
-    );
-
-    e.className=
-    "editor";
-
-
-    const ta=
-    document.createElement(
-      "textarea"
-    );
-
-    ta.value=
-    (planner[day]||[])
-    .join("\n");
-
-
-    const s=
-    document.createElement(
-      "button"
-    );
-
-    s.className=
-    "save";
-
-    s.textContent=
-    "저장";
-
-
-    s.onclick=()=>{
-
-      planner[day]=
-      ta.value
-      .split("\n")
-      .map(x=>x.trim())
-      .filter(Boolean);
-
-
-      localStorage.setItem(
-        KC,
-        JSON.stringify(planner)
-      );
-
-
-      alert(
-        "저장되었습니다."
-      );
-
-    };
-
-
-    e.append(
-      ta,
-      s
-    );
-
-    screen.appendChild(
-      e
-    );
-
-
-    back(
-      "c_edit_days"
-    );
-
-    return;
-
-  }
-
-
-  if(page==="d"){
-
-    shell(
-      "D · LOTTE GIANTS",
-      "롯데 자이언츠",
-      "윤강닷컴 안에서 실시간으로 확인합니다."
-    );
-
-
-    grid(
-
-      choice(
-
-        "D-1 · 오늘 경기",
-
-        "오늘 경기 · 스코어 · 이닝별 정보",
-
-        ()=>{
-
-          page=
-          "d_today";
-
-          render();
-
-        }
-
-      ),
-
-
-      choice(
-
-        "D-2 · 롯데 선수단",
-
-        "현재 등록 선수 · 선수별 시즌 기록",
-
-        ()=>{
-
-          page=
-          "d_roster";
-
-          render();
-
-        }
-
-      ),
-
-
-      choice(
-
-        "D-3 · 경기일정 / 리그 순위",
-
-        "롯데 일정 · KBO 순위",
-
-        ()=>{
-
-          page=
-          "d_schedule";
-
-          render();
-
-        }
-
-      )
-
-    );
-
-
-    back(
-      "root"
-    );
-
-    return;
-
-  }
-
-
-  if(page==="d_today"){
-
-    shell(
-      "D-1 · LIVE",
-      "오늘 경기",
-      "KBO 공식 데이터"
-    );
-
-
-    const head=
-    document.createElement(
-      "div"
-    );
-
-    head.className=
-    "kboLiveHead";
-
-
-    const t=
-    document.createElement(
-      "div"
-    );
-
-    t.className=
-    "kboMuted";
-
-    t.textContent=
-    "화면 안에서 바로 갱신됩니다.";
-
-
-    const r=
-    document.createElement(
-      "button"
-    );
-
-    r.className=
-    "kboRefresh";
-
-    r.textContent=
-    "새로고침";
-
-
-    head.append(
-      t,
-      r
-    );
-
-    screen.appendChild(
-      head
-    );
-
-
-    const b=
-    document.createElement(
-      "div"
-    );
-
-    b.className=
-    "kboBox";
-
-    screen.appendChild(
-      b
-    );
-
-
-    r.onclick=
-    ()=>loadToday(b);
-
-
-    loadToday(
-      b
-    );
-
-
-    back(
-      "d"
-    );
-
-    return;
-
-  }
-
-
-  if(page==="d_roster"){
-
-    shell(
-      "D-2 · ROSTER",
-      "롯데 선수단",
-      "KBO 현재 등록 현황"
-    );
-
-
-    const b=
-    document.createElement(
-      "div"
-    );
-
-
-    screen.appendChild(
-      b
-    );
-
-
-    loadRoster(
-      b
-    );
-
-
-    back(
-      "d"
-    );
-
-    return;
-
-  }
-
-
-  if(page==="d_schedule"){
-
-    shell(
-      "D-3 · SCHEDULE",
-      "경기일정 / 리그 순위",
-      "KBO 공식 데이터"
-    );
-
-
-    const b=
-    document.createElement(
-      "div"
-    );
-
-    b.className=
-    "kboBox";
-
-
-    screen.appendChild(
-      b
-    );
-
-
-    loadScheduleRank(
-      b
-    );
-
-
-    back(
-      "d"
-    );
-
-    return;
-
-  }
-
+  /* ===================================================
+     B
+  =================================================== */
 
   if(page==="two"){
 
@@ -1977,7 +1721,9 @@ function render(){
     );
 
 
-    if(!g.choices.length){
+    if(
+      !g.choices.length
+    ){
 
       const p=
       document.createElement(
@@ -2223,8 +1969,9 @@ function render(){
       inp.value.trim();
 
 
-      if(!v)
-      return;
+      if(!v){
+        return;
+      }
 
 
       if(
@@ -2279,6 +2026,11 @@ function render(){
 
           const newv=
           i.value.trim();
+
+
+          if(!newv){
+            return;
+          }
 
 
           g.choices[idx]=
@@ -2454,7 +2206,9 @@ function render(){
     );
 
 
-    if(!g.choices.length){
+    if(
+      !g.choices.length
+    ){
 
       const p=
       document.createElement(
@@ -2602,6 +2356,597 @@ function render(){
 
     back(
       "twoC_choices"
+    );
+
+    return;
+
+  }
+
+
+  /* ===================================================
+     C
+  =================================================== */
+
+  if(page==="c"){
+
+    shell(
+      "C · PLANNER",
+      txt.cTitle,
+      txt.cDesc
+    );
+
+
+    grid(
+
+      choice(
+        txt.cView,
+        txt.cViewSub,
+        ()=>{
+          page="c_view_days";
+          render();
+        }
+      ),
+
+      choice(
+        txt.cEdit,
+        txt.cEditSub,
+        ()=>{
+          page="c_edit_days";
+          render();
+        }
+      )
+
+    );
+
+
+    back(
+      "root"
+    );
+
+    return;
+
+  }
+
+
+  if(page==="c_view_days"){
+
+    shell(
+      "C-1",
+      "요일을 선택하세요",
+      "선택한 요일의 할 일을 확인합니다."
+    );
+
+
+    const days=[
+      "월요일",
+      "화요일",
+      "수요일",
+      "목요일",
+      "금요일",
+      "토요일",
+      "일요일"
+    ];
+
+
+    grid(
+
+      ...days.map(
+
+        day=>
+
+        choice(
+
+          day,
+
+          `${
+            (
+              planner[day]
+              ||
+              []
+            ).length
+          }개 할 일`,
+
+          ()=>{
+
+            ctx.day=day;
+
+            page=
+            "c_view_list";
+
+            render();
+
+          }
+
+        )
+
+      )
+
+    );
+
+
+    back(
+      "c"
+    );
+
+    return;
+
+  }
+
+
+  if(page==="c_view_list"){
+
+    const day=
+    ctx.day;
+
+
+    shell(
+      "C-1 · 할 일 확인",
+      day,
+      "저장된 할 일입니다."
+    );
+
+
+    const items=
+    planner[day]
+    ||
+    [];
+
+
+    if(
+      !items.length
+    ){
+
+      const p=
+      document.createElement(
+        "div"
+      );
+
+      p.className=
+      "placeholder";
+
+      p.textContent=
+      "등록된 할 일이 없습니다.";
+
+      screen.appendChild(
+        p
+      );
+
+    }
+
+    else{
+
+      items.forEach(
+        item=>{
+
+          const r=
+          document.createElement(
+            "div"
+          );
+
+          r.className=
+          "row";
+
+
+          const c=
+          document.createElement(
+            "div"
+          );
+
+          c.className=
+          "code";
+
+          c.textContent=
+          item;
+
+
+          r.appendChild(
+            c
+          );
+
+          screen.appendChild(
+            r
+          );
+
+        }
+      );
+
+    }
+
+
+    back(
+      "c_view_days"
+    );
+
+    return;
+
+  }
+
+
+  if(page==="c_edit_days"){
+
+    shell(
+      "C-2",
+      "요일을 선택하세요",
+      "선택한 요일의 할 일을 입력합니다."
+    );
+
+
+    const days=[
+      "월요일",
+      "화요일",
+      "수요일",
+      "목요일",
+      "금요일",
+      "토요일",
+      "일요일"
+    ];
+
+
+    grid(
+
+      ...days.map(
+
+        day=>
+
+        choice(
+
+          day,
+
+          `${
+            (
+              planner[day]
+              ||
+              []
+            ).length
+          }개 저장됨`,
+
+          ()=>{
+
+            ctx.day=day;
+
+            page=
+            "c_edit";
+
+            render();
+
+          }
+
+        )
+
+      )
+
+    );
+
+
+    back(
+      "c"
+    );
+
+    return;
+
+  }
+
+
+  if(page==="c_edit"){
+
+    const day=
+    ctx.day;
+
+
+    shell(
+      "C-2 · 할 일 입력",
+      day,
+      "한 줄에 하나씩 입력하세요."
+    );
+
+
+    const e=
+    document.createElement(
+      "div"
+    );
+
+    e.className=
+    "editor";
+
+
+    const ta=
+    document.createElement(
+      "textarea"
+    );
+
+    ta.value=
+    (
+      planner[day]
+      ||
+      []
+    )
+    .join("\n");
+
+
+    const s=
+    document.createElement(
+      "button"
+    );
+
+    s.className=
+    "save";
+
+    s.textContent=
+    "저장";
+
+
+    s.onclick=()=>{
+
+      planner[day]=
+      ta.value
+      .split("\n")
+      .map(
+        x=>x.trim()
+      )
+      .filter(Boolean);
+
+
+      localStorage.setItem(
+        KC,
+        JSON.stringify(planner)
+      );
+
+
+      alert(
+        "저장되었습니다."
+      );
+
+    };
+
+
+    e.append(
+      ta,
+      s
+    );
+
+    screen.appendChild(
+      e
+    );
+
+
+    back(
+      "c_edit_days"
+    );
+
+    return;
+
+  }
+
+
+  /* ===================================================
+     D
+  =================================================== */
+
+  if(page==="d"){
+
+    shell(
+      "D · LOTTE GIANTS",
+      "롯데 자이언츠",
+      "윤강닷컴 안에서 KBO 데이터를 확인합니다."
+    );
+
+
+    grid(
+
+      choice(
+
+        "D-1 · 오늘 경기",
+
+        "오늘 경기 · 스코어",
+
+        ()=>{
+
+          page=
+          "d_today";
+
+          render();
+
+        }
+
+      ),
+
+
+      choice(
+
+        "D-2 · 롯데 선수단",
+
+        "현재 등록 선수 · 선수별 시즌 기록",
+
+        ()=>{
+
+          page=
+          "d_roster";
+
+          render();
+
+        }
+
+      ),
+
+
+      choice(
+
+        "D-3 · 경기일정 / 리그 순위",
+
+        "롯데 일정 · KBO 순위",
+
+        ()=>{
+
+          page=
+          "d_schedule";
+
+          render();
+
+        }
+
+      )
+
+    );
+
+
+    back(
+      "root"
+    );
+
+    return;
+
+  }
+
+
+  if(page==="d_today"){
+
+    shell(
+      "D-1 · LIVE",
+      "오늘 경기",
+      "KBO 공식 데이터"
+    );
+
+
+    const head=
+    document.createElement(
+      "div"
+    );
+
+    head.className=
+    "kboLiveHead";
+
+
+    const t=
+    document.createElement(
+      "div"
+    );
+
+    t.className=
+    "kboMuted";
+
+    t.textContent=
+    "실시간 데이터";
+
+
+    const r=
+    document.createElement(
+      "button"
+    );
+
+    r.className=
+    "kboRefresh";
+
+    r.textContent=
+    "새로고침";
+
+
+    head.append(
+      t,
+      r
+    );
+
+
+    screen.appendChild(
+      head
+    );
+
+
+    const b=
+    document.createElement(
+      "div"
+    );
+
+    b.className=
+    "kboBox";
+
+
+    screen.appendChild(
+      b
+    );
+
+
+    r.onclick=
+    ()=>loadToday(b);
+
+
+    loadToday(
+      b
+    );
+
+
+    back(
+      "d"
+    );
+
+    return;
+
+  }
+
+
+  if(page==="d_roster"){
+
+    shell(
+      "D-2 · ROSTER",
+      "롯데 선수단",
+      "현재 KBO 등록 선수"
+    );
+
+
+    const b=
+    document.createElement(
+      "div"
+    );
+
+
+    screen.appendChild(
+      b
+    );
+
+
+    loadRoster(
+      b
+    );
+
+
+    back(
+      "d"
+    );
+
+    return;
+
+  }
+
+
+  if(page==="d_schedule"){
+
+    shell(
+      "D-3 · SCHEDULE",
+      "경기일정 / 리그 순위",
+      "KBO 공식 데이터"
+    );
+
+
+    const b=
+    document.createElement(
+      "div"
+    );
+
+    b.className=
+    "kboBox";
+
+
+    screen.appendChild(
+      b
+    );
+
+
+    loadScheduleRank(
+      b
+    );
+
+
+    back(
+      "d"
     );
 
     return;
@@ -2983,7 +3328,7 @@ function openEditorHome(){
 
     field(
       "왼쪽 위 이름",
-      txt.brand||"PATH",
+      txt.brand||"윤강닷컴",
       "brand-home"
     )
 
@@ -3017,9 +3362,13 @@ function openEditorHome(){
 
 
     txt.brand=
-    (el && el.value.trim())
+    (
+      el
+      &&
+      el.value.trim()
+    )
     ||
-    "PATH";
+    "윤강닷컴";
 
 
     localStorage.setItem(
@@ -3083,6 +3432,7 @@ function openEditorHome(){
     ]
 
   ].forEach(
+
     ([k,s])=>{
 
       const b=
@@ -3120,6 +3470,7 @@ function openEditorHome(){
       );
 
     }
+
   );
 
 
@@ -3160,7 +3511,7 @@ function openEditorHome(){
   "urlHint";
 
   bp.textContent=
-  "텍스트, 링크, B의 8개 항목 이름, 저장된 데이터와 플래너를 파일로 내보내거나 다시 가져올 수 있습니다.";
+  "사이트 설정과 저장 데이터를 JSON 파일로 백업하거나 복원합니다.";
 
 
   backup.appendChild(
@@ -3225,7 +3576,8 @@ function openEditorHome(){
 
   fi.onchange=
   ()=>importSettings(
-    fi.files &&
+    fi.files
+    &&
     fi.files[0]
   );
 
@@ -3249,7 +3601,9 @@ function openEditorHome(){
 }
 
 
-function openEditorGroup(group){
+function openEditorGroup(
+  group
+){
 
   const cfg=
   EDIT_GROUPS[group];
@@ -3293,6 +3647,7 @@ function openEditorGroup(group){
 
 
   cfg.fields.forEach(
+
     ([key,label])=>
 
     sec.appendChild(
@@ -3304,6 +3659,7 @@ function openEditorGroup(group){
       )
 
     )
+
   );
 
 
@@ -3413,7 +3769,7 @@ function openEditorGroup(group){
     "urlHint";
 
     hint.textContent=
-    "입력한 주소 뒤에 데이터값 + .html이 자동으로 붙습니다. 예: https://example.com/reader/";
+    "입력한 주소 뒤에 데이터값 + .html이 자동으로 붙습니다.";
 
 
     linkSec.appendChild(
@@ -3486,7 +3842,7 @@ function openEditorGroup(group){
   "home";
 
   reset.textContent=
-  "이 항목 기본값";
+  "기본값";
 
   reset.onclick=
   ()=>resetGroup(group);
@@ -3520,7 +3876,9 @@ function openEditorGroup(group){
 }
 
 
-function saveGroup(group){
+function saveGroup(
+  group
+){
 
   textEditorFields
   .querySelectorAll(
@@ -3536,8 +3894,9 @@ function saveGroup(group){
       k.startsWith(
         "link-"
       )
-    )
-    return;
+    ){
+      return;
+    }
 
 
     txt[k]=
@@ -3588,14 +3947,17 @@ function saveGroup(group){
     );
 
 
-    if(base)
-    links.oneABase=
-    base.value.trim();
+    if(base){
+
+      links.oneABase=
+      base.value.trim();
+
+    }
 
 
     for(
       let i=0;
-      i<3;
+      i<links.oneB.length;
       i++
     ){
 
@@ -3611,14 +3973,20 @@ function saveGroup(group){
       );
 
 
-      if(t)
-      links.oneB[i].title=
-      t.value;
+      if(t){
+
+        links.oneB[i].title=
+        t.value;
+
+      }
 
 
-      if(u)
-      links.oneB[i].url=
-      u.value.trim();
+      if(u){
+
+        links.oneB[i].url=
+        u.value.trim();
+
+      }
 
     }
 
@@ -3640,7 +4008,9 @@ function saveGroup(group){
   document.getElementById(
     "brandText"
   ).textContent=
-  txt.brand || "PATH";
+  txt.brand
+  ||
+  "윤강닷컴";
 
 
   render();
@@ -3654,15 +4024,18 @@ function saveGroup(group){
 }
 
 
-function resetGroup(group){
+function resetGroup(
+  group
+){
 
   if(
     !confirm(
       group+
       " 항목의 텍스트를 기본값으로 되돌릴까요?"
     )
-  )
-  return;
+  ){
+    return;
+  }
 
 
   EDIT_GROUPS[group]
@@ -3688,11 +4061,28 @@ function resetGroup(group){
 
   if(group==="B"){
 
+    const defaults=[
+      "국어",
+      "영어",
+      "수학",
+      "역사",
+      "과학",
+      "도덕",
+      "기가",
+      "정보"
+    ];
+
+
     data2.groups.forEach(
 
-      (g,i)=>
-      g.name=
-      `항목 ${i+1}`
+      (g,i)=>{
+
+        g.name=
+        defaults[i]
+        ||
+        `항목 ${i+1}`;
+
+      }
 
     );
 
@@ -3727,11 +4117,15 @@ function resetGroup(group){
 }
 
 
+/* =====================================================
+   설정 내보내기 / 가져오기
+===================================================== */
+
 function exportSettings(){
 
   const payload={
 
-    version:1,
+    version:2,
 
     exportedAt:
     new Date()
@@ -3789,7 +4183,7 @@ function exportSettings(){
 
 
   a.download=
-  "path-settings.json";
+  "path-settings-윤강닷컴.json";
 
 
   document.body.appendChild(
@@ -3816,10 +4210,13 @@ function exportSettings(){
 }
 
 
-async function importSettings(file){
+async function importSettings(
+  file
+){
 
-  if(!file)
-  return;
+  if(!file){
+    return;
+  }
 
 
   try{
@@ -3873,7 +4270,9 @@ async function importSettings(file){
     }
 
 
-    if(obj.option2Data){
+    if(
+      obj.option2Data
+    ){
 
       data2=
       obj.option2Data;
@@ -3886,7 +4285,9 @@ async function importSettings(file){
     }
 
 
-    if(obj.planner){
+    if(
+      obj.planner
+    ){
 
       planner=
       obj.planner;
@@ -3902,7 +4303,9 @@ async function importSettings(file){
     document.getElementById(
       "brandText"
     ).textContent=
-    txt.brand || "PATH";
+    txt.brand
+    ||
+    "윤강닷컴";
 
 
     render();
@@ -3927,6 +4330,10 @@ async function importSettings(file){
 
 }
 
+
+/* =====================================================
+   상단 버튼
+===================================================== */
 
 document.getElementById(
   "textEditBtn"
@@ -3955,7 +4362,9 @@ document.getElementById(
 document.getElementById(
   "brandText"
 ).textContent=
-txt.brand || "PATH";
+txt.brand
+||
+"윤강닷컴";
 
 
 document.getElementById(
@@ -3969,6 +4378,11 @@ document.getElementById(
 
   render();
 
+  window.scrollTo(
+    0,
+    0
+  );
+
 };
 
 
@@ -3978,6 +4392,10 @@ render();
 
 
 <script>
+
+/* =====================================================
+   PWA Service Worker
+===================================================== */
 
 if(
   "serviceWorker"
@@ -4019,11 +4437,16 @@ if(
 <script>
 
 /* =====================================================
-   KBO API
+   CLOUDFLARE KBO API
+
+   ★ 중요 ★
+   Netlify 주소가 아니다.
+
+   Cloudflare Worker의 /api/kbo 사용.
 ===================================================== */
 
 const KBO_API=
-"/.netlify/functions/kbo";
+"/api/kbo";
 
 
 function esc(x){
@@ -4068,26 +4491,48 @@ async function kboGet(
   });
 
 
+  const url=
+  KBO_API+
+  "?"+
+  q.toString();
+
+
   const r=
   await fetch(
 
-    KBO_API+
-    "?"+
-    q.toString(),
+    url,
 
     {
       cache:
-      "no-store"
+      "no-store",
+
+      headers:{
+        "accept":
+        "application/json"
+      }
+
     }
 
   );
 
 
-  const j=
-  await r.json()
-  .catch(
-    ()=>({})
-  );
+  let j={};
+
+
+  try{
+
+    j=
+    await r.json();
+
+  }
+
+  catch(e){
+
+    throw new Error(
+      "KBO API가 JSON을 반환하지 않았습니다."
+    );
+
+  }
 
 
   if(!r.ok){
@@ -4113,7 +4558,7 @@ async function kboGet(
 
 
 /* =====================================================
-   표
+   KBO 표
 ===================================================== */
 
 function kboTable(
@@ -4140,28 +4585,48 @@ function kboTable(
   }
 
 
+  const hs=
+  headers
+  ||
+  [];
+
+
   return `
 
     <div class="kboTableWrap">
 
       <table class="kboTable">
 
-        <thead>
+        ${
+          hs.length
 
-          <tr>
+          ?
 
-            ${
-              (headers||[])
-              .map(
-                h=>
-                `<th>${esc(h)}</th>`
-              )
-              .join("")
-            }
+          `
 
-          </tr>
+            <thead>
 
-        </thead>
+              <tr>
+
+                ${
+                  hs
+                  .map(
+                    h=>
+                    `<th>${esc(h)}</th>`
+                  )
+                  .join("")
+                }
+
+              </tr>
+
+            </thead>
+
+          `
+
+          :
+
+          ""
+        }
 
 
         <tbody>
@@ -4204,7 +4669,9 @@ function kboTable(
    D-1 오늘 경기
 ===================================================== */
 
-function loadToday(box){
+function loadToday(
+  box
+){
 
   box.innerHTML=`
 
@@ -4223,11 +4690,15 @@ function loadToday(box){
 
   .then(j=>{
 
-    const g=
-    j.games || [];
+    const games=
+    j.games
+    ||
+    [];
 
 
-    if(!g.length){
+    if(
+      !games.length
+    ){
 
       box.innerHTML=`
 
@@ -4246,29 +4717,24 @@ function loadToday(box){
 
 
     box.innerHTML=
-    g.map(x=>{
-
-      /*
-        현재 API가 배열 형태를 반환하는 경우도
-        화면에서 보이도록 처리.
-      */
+    games
+    .map(g=>{
 
       if(
-        Array.isArray(x)
+        Array.isArray(g)
       ){
 
         return `
 
           <div class="kboGame">
 
-            <div class="kboMuted">
-
-              ${
-                x.map(esc)
-                .join(" · ")
-              }
-
-            </div>
+            ${
+              g
+              .map(esc)
+              .join(
+                " · "
+              )
+            }
 
           </div>
 
@@ -4285,23 +4751,34 @@ function loadToday(box){
 
             <b>
 
-              ${esc(x.away||"")}
+              ${esc(g.away||"")}
 
-              ${x.away||x.home ? "vs" : ""}
+              ${
+                g.away
+                ||
+                g.home
+                ?
+                " vs "
+                :
+                ""
+              }
 
-              ${esc(x.home||"")}
+              ${esc(g.home||"")}
 
             </b>
 
+
             <span class="kboMuted">
 
-              ${esc(
-                x.status
-                ||
-                x.time
-                ||
-                ""
-              )}
+              ${
+                esc(
+                  g.status
+                  ||
+                  g.time
+                  ||
+                  ""
+                )
+              }
 
             </span>
 
@@ -4309,39 +4786,41 @@ function loadToday(box){
 
 
           ${
-            x.awayScore!==undefined
+            g.awayScore!==undefined
             ||
-            x.homeScore!==undefined
+            g.homeScore!==undefined
 
-            ?`
+            ?
+
+            `
 
               <div class="kboScore">
 
-                ${esc(x.awayScore??"")}
+                ${
+                  esc(
+                    g.awayScore
+                    ??
+                    ""
+                  )
+                }
 
                 :
 
-                ${esc(x.homeScore??"")}
+                ${
+                  esc(
+                    g.homeScore
+                    ??
+                    ""
+                  )
+                }
 
               </div>
 
             `
 
-            :""
-          }
+            :
 
-
-          ${
-            x.table
-
-            ?
-
-            kboTable(
-              x.table.headers,
-              x.table.rows
-            )
-
-            :""
+            ""
           }
 
         </div>
@@ -4359,6 +4838,10 @@ function loadToday(box){
 
       <div class="kboError">
 
+        오늘 경기 데이터를 불러오지 못했습니다.
+
+        <br><br>
+
         ${esc(e.message)}
 
       </div>
@@ -4371,16 +4854,18 @@ function loadToday(box){
 
 
 /* =====================================================
-   D-2 선수단
+   D-2 롯데 선수단
 ===================================================== */
 
-function loadRoster(box){
+function loadRoster(
+  box
+){
 
   box.innerHTML=`
 
     <div class="kboLoading">
 
-      등록 선수 불러오는 중...
+      롯데 선수단 불러오는 중...
 
     </div>
 
@@ -4394,24 +4879,22 @@ function loadRoster(box){
   .then(j=>{
 
     const groups=
-    j.groups || {};
+    j.groups
+    ||
+    {};
 
 
     const order=[
-
       "투수",
-
       "포수",
-
       "내야수",
-
       "외야수"
-
     ];
 
 
     box.innerHTML=
-    order.map(pos=>{
+    order
+    .map(pos=>{
 
       const arr=
       groups[pos]
@@ -4443,6 +4926,8 @@ function loadRoster(box){
 
                   <button
 
+                    type="button"
+
                     class="kboPlayer"
 
                     data-player-name="${esc(p.name)}"
@@ -4461,7 +4946,7 @@ function loadRoster(box){
 
                     <small>
 
-                      #${esc(p.number||"")}
+                      #${esc(p.number||"-")}
 
                     </small>
 
@@ -4519,6 +5004,10 @@ function loadRoster(box){
 
       <div class="kboError">
 
+        선수단을 불러오지 못했습니다.
+
+        <br><br>
+
         ${esc(e.message)}
 
       </div>
@@ -4531,118 +5020,167 @@ function loadRoster(box){
 
 
 /* =====================================================
-   현재 2026 시즌 기록 추출
+   선수 시즌기록 추출
+
+   KBO의 첫 시즌 기록표들을 사용한다.
+   최근 경기 표가 시즌 기록을 덮어쓰지 않도록
+   앞쪽 통계표를 우선한다.
 ===================================================== */
 
-function statsFromCurrentSeason(
-  tables
+function tableToStats(
+  table
 ){
 
-  const out={};
+  const result={};
 
 
-  (tables||[])
-  .forEach(t=>{
-
-    const headers=
-    t.headers || [];
-
-
-    const rows=
-    t.rows || [];
+  if(
+    !table
+  ){
+    return result;
+  }
 
 
-    if(
-      !headers.length
-      ||
-      !rows.length
-    )
-    return;
+  const headers=
+  table.headers
+  ||
+  [];
 
 
-    /*
-      2026 + 롯데가 있는 행 우선
-    */
+  const rows=
+  table.rows
+  ||
+  [];
 
-    let row=
+
+  if(
+    !headers.length
+    ||
+    !rows.length
+  ){
+    return result;
+  }
+
+
+  let row=
+  rows.find(
+
+    r=>
+      String(
+        r.join(" ")
+      )
+      .includes("롯데")
+
+  );
+
+
+  if(!row){
+
+    row=
     rows.find(
 
       r=>
-
       String(
-        r[0] ?? ""
+        r[0]
+        ||
+        ""
       )
       .trim()
       ===
       "2026"
 
-      &&
-
-      String(
-        r.join(" ")
-      )
-      .includes(
-        "롯데"
-      )
-
     );
 
-
-    /*
-      롯데 문자가 없는 표는
-      2026 행만 확인
-    */
-
-    if(!row){
-
-      row=
-      rows.find(
-
-        r=>
-
-        String(
-          r[0] ?? ""
-        )
-        .trim()
-        ===
-        "2026"
-
-      );
-
-    }
+  }
 
 
-    if(!row)
-    return;
+  if(!row){
+
+    row=
+    rows[0];
+
+  }
 
 
-    headers.forEach(
+  headers.forEach(
 
-      (name,i)=>{
+    (h,i)=>{
 
-        if(
-          name!==undefined
-          &&
-          row[i]!==undefined
-        ){
+      if(
+        h!==undefined
+        &&
+        row[i]!==undefined
+      ){
 
-          out[
-            String(name)
-            .trim()
-          ]
-          =
+        const k=
+        String(h)
+        .trim();
+
+
+        if(k){
+
+          result[k]=
           row[i];
 
         }
 
       }
 
-    );
+    }
 
-  });
+  );
 
 
-  return out;
+  return result;
+
+}
+
+
+function collectSeasonStats(
+  tables
+){
+
+  const stats={};
+
+
+  /*
+    첫 두 개 기록표 중심.
+
+    투수의 경우
+    첫 번째 표:
+    ERA, G, W, L, IP 등
+
+    다음 표:
+    SO, WHIP 등
+
+    타자도 기본 기록표가
+    앞부분에 배치되는 형태를 이용.
+  */
+
+  (
+    tables
+    ||
+    []
+  )
+  .slice(
+    0,
+    2
+  )
+  .forEach(
+
+    t=>{
+
+      Object.assign(
+        stats,
+        tableToStats(t)
+      );
+
+    }
+
+  );
+
+
+  return stats;
 
 }
 
@@ -4653,13 +5191,22 @@ function statValue(
 ){
 
   for(
-    const n of names
+    const n
+    of
+    names
   ){
 
     if(
       stats[n]!==undefined
       &&
-      stats[n]!==""
+      stats[n]!==null
+      &&
+      String(
+        stats[n]
+      )
+      .trim()
+      !==
+      ""
     ){
 
       return stats[n];
@@ -4681,31 +5228,16 @@ function statCard(
 
   return `
 
-    <div style="
-      background:var(--card2);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:14px 10px;
-      text-align:center
-    ">
+    <div class="statCard">
 
-      <div style="
-        color:var(--muted);
-        font-size:11px;
-        font-weight:800;
-        margin-bottom:7px
-      ">
+      <div class="statLabel">
 
         ${esc(label)}
 
       </div>
 
 
-      <div style="
-        font-size:20px;
-        font-weight:900;
-        letter-spacing:-.03em
-      ">
+      <div class="statValue">
 
         ${esc(value)}
 
@@ -4719,7 +5251,7 @@ function statCard(
 
 
 /* =====================================================
-   D-2 선수 상세
+   선수 상세
 ===================================================== */
 
 function showLottePlayer(
@@ -4771,12 +5303,11 @@ function showLottePlayer(
   );
 
 
-  /*
-    외부 사이트로 이동하지 않는다.
+  window.scrollTo(
+    0,
+    0
+  );
 
-    이름 + 등번호 + 포지션을
-    우리 Netlify Function으로 전달한다.
-  */
 
   kboGet(
 
@@ -4797,39 +5328,54 @@ function showLottePlayer(
   .then(j=>{
 
     const player=
-    j.player || {};
+    j.player
+    ||
+    {};
 
 
     const profile=
-    j.profile || {};
+    j.profile
+    ||
+    {};
 
 
     const tables=
-    (j.tables||[])
+    (
+      j.tables
+      ||
+      []
+    )
     .filter(
       t=>
-      (t.rows||[]).length
+      (
+        t.rows
+        ||
+        []
+      )
+      .length
     );
 
 
     const stats=
-    statsFromCurrentSeason(
+    collectSeasonStats(
       tables
     );
 
 
     const isPitcher=
 
-    pos==="투수"
+      pos==="투수"
 
-    ||
+      ||
 
-    String(
-      profile.position || ""
-    )
-    .includes(
-      "투수"
-    );
+      String(
+        profile.position
+        ||
+        ""
+      )
+      .includes(
+        "투수"
+      );
 
 
     let items=[];
@@ -5029,72 +5575,59 @@ function showLottePlayer(
     }
 
 
+    const displayName=
+    profile.name
+    ||
+    player.name
+    ||
+    name;
+
+
+    const displayNumber=
+    profile.number
+    ||
+    player.number
+    ||
+    no
+    ||
+    "-";
+
+
+    const displayPosition=
+    profile.position
+    ||
+    player.position
+    ||
+    pos
+    ||
+    "-";
+
+
     b.innerHTML=`
 
-      <div class="kboBox">
+      <div class="kboBox playerHero">
 
-        <div style="
-          font-size:12px;
-          color:var(--accent);
-          font-weight:900;
-          margin-bottom:5px
-        ">
+        <div class="kicker">
 
           LOTTE GIANTS
 
         </div>
 
 
-        <div style="
-          font-size:28px;
-          font-weight:950;
-          letter-spacing:-.05em
-        ">
+        <div class="playerName">
 
-          ${
-            esc(
-              profile.name
-              ||
-              player.name
-              ||
-              name
-            )
-          }
+          ${esc(displayName)}
 
         </div>
 
 
-        <div style="
-          margin-top:7px;
-          color:var(--muted);
-          font-size:13px
-        ">
+        <div class="playerSub">
 
-          ${
-            esc(
-              profile.position
-              ||
-              player.position
-              ||
-              pos
-              ||
-              "-"
-            )
-          }
+          ${esc(displayPosition)}
 
           ·
 
-          #${
-            esc(
-              profile.number
-              ||
-              player.number
-              ||
-              no
-              ||
-              "-"
-            )
-          }
+          #${esc(displayNumber)}
 
         </div>
 
@@ -5110,16 +5643,11 @@ function showLottePlayer(
         </div>
 
 
-        <div style="
-          display:grid;
-          grid-template-columns:
-          repeat(2,minmax(0,1fr));
-          gap:9px;
-          margin-top:13px
-        ">
+        <div class="playerStats">
 
           ${
-            items.map(
+            items
+            .map(
 
               x=>
 
@@ -5146,68 +5674,98 @@ function showLottePlayer(
         </div>
 
 
-        <div style="
-          margin-top:13px;
-          line-height:1.9;
-          font-size:14px
-        ">
+        <div class="playerInfoRow">
 
-          <div>
+          <div class="playerInfoLabel">
 
-            <span style="
-              color:var(--muted)
-            ">
-
-              생년월일
-
-            </span>
-
-            <br>
-
-            <b>
-
-              ${
-                esc(
-                  profile.birth
-                  ||
-                  "-"
-                )
-              }
-
-            </b>
+            생년월일
 
           </div>
 
+          <div class="playerInfoValue">
 
-          <div style="
-            margin-top:12px
-          ">
-
-            <span style="
-              color:var(--muted)
-            ">
-
-              신장 / 체중
-
-            </span>
-
-            <br>
-
-            <b>
-
-              ${
-                esc(
-                  profile.size
-                  ||
-                  "-"
-                )
-              }
-
-            </b>
+            ${
+              esc(
+                profile.birth
+                ||
+                "-"
+              )
+            }
 
           </div>
 
         </div>
+
+
+        <div class="playerInfoRow">
+
+          <div class="playerInfoLabel">
+
+            포지션
+
+          </div>
+
+          <div class="playerInfoValue">
+
+            ${esc(displayPosition)}
+
+          </div>
+
+        </div>
+
+
+        <div class="playerInfoRow">
+
+          <div class="playerInfoLabel">
+
+            신장 / 체중
+
+          </div>
+
+          <div class="playerInfoValue">
+
+            ${
+              esc(
+                profile.size
+                ||
+                "-"
+              )
+            }
+
+          </div>
+
+        </div>
+
+
+        ${
+          profile.career
+
+          ?
+
+          `
+
+            <div class="playerInfoRow">
+
+              <div class="playerInfoLabel">
+
+                경력
+
+              </div>
+
+              <div class="playerInfoValue">
+
+                ${esc(profile.career)}
+
+              </div>
+
+            </div>
+
+          `
+
+          :
+
+          ""
+        }
 
       </div>
 
@@ -5221,12 +5779,12 @@ function showLottePlayer(
 
           <details
             class="kboBox"
-            style="margin-top:12px"
           >
 
             <summary style="
               cursor:pointer;
-              font-weight:850
+              font-weight:850;
+              padding:4px 0
             ">
 
               전체 기록표 보기
@@ -5234,13 +5792,18 @@ function showLottePlayer(
             </summary>
 
 
-            <div style="
-              margin-top:15px
-            ">
+            <div
+              style="
+                margin-top:15px
+              "
+            >
 
               ${
                 tables
-                .slice(0,6)
+                .slice(
+                  0,
+                  6
+                )
                 .map(
 
                   t=>
@@ -5302,7 +5865,9 @@ function showLottePlayer(
    D-3 일정 + 순위
 ===================================================== */
 
-function loadScheduleRank(box){
+function loadScheduleRank(
+  box
+){
 
   box.innerHTML=`
 
@@ -5331,7 +5896,9 @@ function loadScheduleRank(box){
     ([a,b])=>{
 
       const sched=
-      a.rows || [];
+      a.rows
+      ||
+      [];
 
 
       const rank=
@@ -5349,7 +5916,9 @@ function loadScheduleRank(box){
 
         ${
           kboTable(
-            a.headers || [],
+            a.headers
+            ||
+            [],
             sched
           )
         }
@@ -5370,8 +5939,12 @@ function loadScheduleRank(box){
             ?
 
             kboTable(
-              rank.headers,
+              rank.headers
+              ||
+              [],
               rank.rows
+              ||
+              []
             )
 
             :
@@ -5401,6 +5974,10 @@ function loadScheduleRank(box){
 
       <div class="kboError">
 
+        경기일정 또는 순위를 불러오지 못했습니다.
+
+        <br><br>
+
         ${esc(e.message)}
 
       </div>
@@ -5414,4 +5991,4 @@ function loadScheduleRank(box){
 </script>
 
 </body>
- </html>
+  </html>

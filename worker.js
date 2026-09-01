@@ -618,21 +618,31 @@ function scheduleDateFromLabel(
   month
 ) {
   const out = [];
+
   const rows =
     html.match(
       /<tr\b[\s\S]*?<\/tr>/gi
     ) || [];
 
   let currentDate = "";
-  const today = todayKST();
 
-  for (const row of rows) {
+  const today =
+    todayKST();
+
+  for (
+    const row of rows
+  ) {
     const cells = [
       ...row.matchAll(
         /<td\b[^>]*>([\s\S]*?)<\/td>/gi
       )
     ]
-      .map(m => cleanText(m[1]))
+      .map(
+        m =>
+          cleanText(
+            m[1]
+          )
+      )
       .filter(Boolean);
 
     if (!cells.length) {
@@ -640,8 +650,11 @@ function scheduleDateFromLabel(
     }
 
     const dateLabel =
-      cells.find(v =>
-        /^\d{2}\.\d{2}\([A-Z]{3}\)$/i.test(v)
+      cells.find(
+        v =>
+          /^\d{2}\.\d{2}\([A-Z]{3}\)$/i.test(
+            v
+          )
       );
 
     if (dateLabel) {
@@ -657,11 +670,16 @@ function scheduleDateFromLabel(
     }
 
     const timeIndex =
-      cells.findIndex(v =>
-        /^\d{1,2}:\d{2}$/.test(v)
+      cells.findIndex(
+        v =>
+          /^\d{1,2}:\d{2}$/.test(
+            v
+          )
       );
 
-    if (timeIndex < 0) {
+    if (
+      timeIndex < 0
+    ) {
       continue;
     }
 
@@ -670,7 +688,8 @@ function scheduleDateFromLabel(
         timeIndex + 1
       );
 
-    const teamPositions = [];
+    const teamPositions =
+      [];
 
     after.forEach(
       (v, i) => {
@@ -682,7 +701,9 @@ function scheduleDateFromLabel(
             upper
           )
         ) {
-          teamPositions.push(i);
+          teamPositions.push(
+            i
+          );
         }
       }
     );
@@ -693,7 +714,8 @@ function scheduleDateFromLabel(
       const joined =
         after.join(" ");
 
-      const foundTeams = [];
+      const foundTeams =
+        [];
 
       for (
         const team
@@ -711,7 +733,8 @@ function scheduleDateFromLabel(
         if (match) {
           foundTeams.push({
             team,
-            index: match.index
+            index:
+              match.index
           });
         }
       }
@@ -772,23 +795,32 @@ function scheduleDateFromLabel(
           new RegExp(
             `\\b${code}\\b`,
             "i"
-          ).test(joined)
+          ).test(
+            joined
+          )
         ) {
-          locationCode = code;
+          locationCode =
+            code;
+
           location =
-            LOCATION_KO[code];
+            LOCATION_KO[
+              code
+            ];
+
           break;
         }
       }
 
-      let status = "예정";
+      let status =
+        "예정";
 
       if (
         /POSTPONED/i.test(
           joined
         )
       ) {
-        status = "연기";
+        status =
+          "연기";
       }
 
       else if (
@@ -796,7 +828,8 @@ function scheduleDateFromLabel(
           joined
         )
       ) {
-        status = "취소";
+        status =
+          "취소";
       }
 
       else if (
@@ -804,32 +837,44 @@ function scheduleDateFromLabel(
           joined
         )
       ) {
-        status = "중단";
+        status =
+          "중단";
       }
 
       else if (
-        currentDate < today
+        currentDate <
+        today
       ) {
-        status = "종료";
+        status =
+          "종료";
       }
 
       else if (
         awayScore !== null &&
         homeScore !== null
       ) {
-        status = "종료";
+        status =
+          "종료";
       }
 
       out.push({
-        date: currentDate,
+        date:
+          currentDate,
+
         time:
-          cells[timeIndex],
+          cells[
+            timeIndex
+          ],
+
         away,
         home,
+
         awayScore,
         homeScore,
+
         location,
         locationCode,
+
         status
       });
 
@@ -868,8 +913,11 @@ function scheduleDateFromLabel(
     const betweenText =
       between.join(" ");
 
-    let awayScore = null;
-    let homeScore = null;
+    let awayScore =
+      null;
+
+    let homeScore =
+      null;
 
     const scoreMatch =
       betweenText.match(
@@ -894,16 +942,22 @@ function scheduleDateFromLabel(
     ) {
       const nums =
         between
-          .filter(v =>
-            /^\d{1,2}$/.test(v)
+          .filter(
+            v =>
+              /^\d{1,2}$/.test(
+                v
+              )
           )
           .map(Number);
 
       if (
         nums.length >= 2
       ) {
-        awayScore = nums[0];
-        homeScore = nums[1];
+        awayScore =
+          nums[0];
+
+        homeScore =
+          nums[1];
       }
     }
 
@@ -916,27 +970,31 @@ function scheduleDateFromLabel(
       tail.join(" ");
 
     const locationCode =
-      tail.find(v =>
-        LOCATION_KO[
-          v.toUpperCase()
-        ]
+      tail.find(
+        v =>
+          LOCATION_KO[
+            v.toUpperCase()
+          ]
       ) || "";
 
     const rawStatus =
-      tail.find(v =>
-        /POSTPONED|CANCELLED|CANCELED|SUSPENDED/i.test(
-          v
-        )
+      tail.find(
+        v =>
+          /POSTPONED|CANCELLED|CANCELED|SUSPENDED/i.test(
+            v
+          )
       ) || "";
 
-    let status = "예정";
+    let status =
+      "예정";
 
     if (
       /POSTPONED/i.test(
         rawStatus
       )
     ) {
-      status = "연기";
+      status =
+        "연기";
     }
 
     else if (
@@ -944,7 +1002,8 @@ function scheduleDateFromLabel(
         rawStatus
       )
     ) {
-      status = "취소";
+      status =
+        "취소";
     }
 
     else if (
@@ -952,20 +1011,23 @@ function scheduleDateFromLabel(
         rawStatus
       )
     ) {
-      status = "중단";
+      status =
+        "중단";
     }
 
     else if (
       currentDate < today
     ) {
-      status = "종료";
+      status =
+        "종료";
     }
 
     else if (
       awayScore !== null &&
       homeScore !== null
     ) {
-      status = "종료";
+      status =
+        "종료";
     }
 
     out.push({
@@ -1127,7 +1189,8 @@ function scoreboardGames(
           before
         )
       ) {
-        locationCode = code;
+        locationCode =
+          code;
 
         location =
           LOCATION_KO[
@@ -1262,20 +1325,12 @@ function scoreboardGames(
 }
 
 
-/*
- * KBO 게임센터 API
- */
-
 const GAME_LIST_API =
   `${BASE}/ws/Main.asmx/GetKboGameList`;
 
 const SCHEDULE_API =
   `${BASE}/ws/Schedule.asmx`;
 
-/*
- * 중요:
- * KBO API 요청에 사용하는 User-Agent.
- */
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
   "AppleWebKit/537.36 (KHTML, like Gecko) " +
@@ -1285,14 +1340,8 @@ function compactDate(
   v = ""
 ) {
   return String(v)
-    .replace(
-      /\D/g,
-      ""
-    )
-    .slice(
-      0,
-      8
-    );
+    .replace(/\D/g, "")
+    .slice(0, 8);
 }
 
 function normDate(
@@ -1302,11 +1351,7 @@ function normDate(
     compactDate(v);
 
   return d.length === 8
-    ? (
-        `${d.slice(0, 4)}-` +
-        `${d.slice(4, 6)}-` +
-        `${d.slice(6, 8)}`
-      )
+    ? `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`
     : "";
 }
 
@@ -1314,11 +1359,7 @@ function shiftDate(
   date,
   delta
 ) {
-  const [
-    y,
-    m,
-    d
-  ] =
+  const [y,m,d] =
     date
       .split("-")
       .map(Number);
@@ -1334,12 +1375,8 @@ function shiftDate(
 
   return (
     `${x.getUTCFullYear()}-` +
-    `${String(
-      x.getUTCMonth() + 1
-    ).padStart(2, "0")}-` +
-    `${String(
-      x.getUTCDate()
-    ).padStart(2, "0")}`
+    `${String(x.getUTCMonth()+1).padStart(2,"0")}-` +
+    `${String(x.getUTCDate()).padStart(2,"0")}`
   );
 }
 
@@ -1355,10 +1392,7 @@ function nnum(v) {
 
   const n =
     Number(
-      String(v).replace(
-        /,/g,
-        ""
-      )
+      String(v).replace(/,/g,"")
     );
 
   return Number.isFinite(n)
@@ -1371,15 +1405,12 @@ function person(
   name
 ) {
   name =
-    String(
-      name || ""
-    ).trim();
+    String(name || "")
+      .trim();
 
   return name
     ? {
-        id:
-          id || null,
-
+        id: id || null,
         name
       }
     : null;
@@ -1390,11 +1421,7 @@ function teamName(
   id = ""
 ) {
   const x =
-    String(
-      name ||
-      id ||
-      ""
-    )
+    String(name || id || "")
       .trim()
       .toUpperCase();
 
@@ -1484,10 +1511,7 @@ async function gameList(
   const clean =
     (
       cut >= 0
-        ? text.slice(
-            0,
-            cut
-          )
+        ? text.slice(0,cut)
         : text
     ).trim();
 
@@ -1496,9 +1520,7 @@ async function gameList(
       clean || "{}"
     );
 
-  return Array.isArray(
-    j.game
-  )
+  return Array.isArray(j.game)
     ? j.game
     : [];
 }
@@ -1545,6 +1567,16 @@ function publicGame(
       )
         ? "취소"
         : cancel;
+  }
+
+  else if (
+    String(
+      x.GAME_STATE_SC ||
+      ""
+    ) === "3"
+  ) {
+    status =
+      "종료";
   }
 
   else if (
@@ -1675,28 +1707,19 @@ function isLotte(g) {
   return (
     g &&
     (
-      g.away ===
-        "LOTTE" ||
-      g.home ===
-        "LOTTE"
+      g.away === "LOTTE" ||
+      g.home === "LOTTE"
     )
   );
 }
 
-
 /*
- * D-3 최근 경기
+ * 최근 롯데 종료 경기.
  *
- * 기존 방식:
- * 과거 GetKboGameList의 점수가
- * null이면 경기를 버렸음.
- *
- * 새 방식:
- * 공식 KBO ScoreBoard 페이지를
- * 날짜별로 직접 읽어서
- * 최종 점수를 찾는다.
+ * 실제 KBO GetKboGameList 응답의
+ * GAME_STATE_SC === "3"을
+ * 경기 종료 기준으로 사용한다.
  */
-
 async function recentLotteFinalGames(
   today,
   wanted = 3
@@ -1705,377 +1728,166 @@ async function recentLotteFinalGames(
   const seen =
     new Set();
 
-  const teamMap = {
-    "롯데": "LOTTE",
-    "LOTTE": "LOTTE",
-
-    "삼성": "SAMSUNG",
-    "SAMSUNG": "SAMSUNG",
-
-    "두산": "DOOSAN",
-    "DOOSAN": "DOOSAN",
-
-    "한화": "HANWHA",
-    "HANWHA": "HANWHA",
-
-    "키움": "KIWOOM",
-    "KIWOOM": "KIWOOM",
-
-    "KIA": "KIA",
-    "SSG": "SSG",
-    "LG": "LG",
-    "KT": "KT",
-    "NC": "NC"
-  };
-
-  function normalizeTeam(
-    value
-  ) {
-    const s =
-      String(
-        value || ""
-      ).trim();
-
-    return (
-      teamMap[s] ||
-      teamName(
-        s,
-        s
-      )
-    );
-  }
-
   /*
-   * 시즌 중 최근 3경기는
-   * 보통 며칠 안에 존재하지만
-   * 우천취소/휴식일을 고려해
-   * 최대 45일 전까지 확인.
+   * 7일씩 병렬 조회.
+   * 최대 42일 전까지 확인한다.
    */
   for (
-    let daysAgo = 1;
-    daysAgo <= 45 &&
+    let start = 1;
+    start <= 42 &&
     found.length < wanted;
-    daysAgo++
+    start += 7
   ) {
-    const date =
-      shiftDate(
-        today,
-        -daysAgo
+    const dates =
+      Array.from(
+        { length: 7 },
+        (_, i) =>
+          shiftDate(
+            today,
+            -(start + i)
+          )
       );
 
-    let html = "";
-
-    /*
-     * 영문 KBO 스코어보드를
-     * 먼저 사용한다.
-     */
-    try {
-      html =
-        await get(
-          `${ENG}/Schedule/Scoreboard.aspx?searchDate=${date}`
-        );
-    } catch (_) {
-      /*
-       * 실패하면 한국 KBO
-       * 스코어보드로 한 번 더 시도.
-       */
-      try {
-        html =
-          await get(
-            `${BASE}/Schedule/ScoreBoard.aspx?searchDate=${date}`
-          );
-      } catch (_) {
-        continue;
-      }
-    }
-
-    const tableMatches = [
-      ...html.matchAll(
-        /<table\b[\s\S]*?<\/table>/gi
-      )
-    ];
+    const batch =
+      await Promise.all(
+        dates.map(
+          date =>
+            gameList(date)
+              .then(
+                raw => ({
+                  date,
+                  raw
+                })
+              )
+              .catch(
+                () => ({
+                  date,
+                  raw: []
+                })
+              )
+        )
+      );
 
     for (
-      const match
-      of tableMatches
+      const {
+        date,
+        raw
+      } of batch
     ) {
-      const parsed =
-        tables(
-          match[0]
-        )[0];
-
-      if (
-        !parsed ||
-        parsed.rows.length < 2
-      ) {
-        continue;
-      }
-
-      const headers =
-        parsed.headers.map(
-          h =>
-            String(
-              h || ""
-            )
-              .trim()
-              .toUpperCase()
-        );
-
-      const teamIndex =
-        headers.findIndex(
-          h =>
-            h === "TEAM" ||
-            h === "팀" ||
-            h === "팀명"
-        );
-
-      const runIndex =
-        headers.findIndex(
-          h =>
-            h === "R" ||
-            h === "득점"
-        );
-
-      if (
-        teamIndex < 0 ||
-        runIndex < 0
-      ) {
-        continue;
-      }
-
-      const rows =
-        parsed.rows.filter(
-          row =>
-            row.length >
-            Math.max(
-              teamIndex,
-              runIndex
-            )
-        );
-
-      if (
-        rows.length < 2
-      ) {
-        continue;
-      }
-
-      const away =
-        normalizeTeam(
-          rows[0][
-            teamIndex
-          ]
-        );
-
-      const home =
-        normalizeTeam(
-          rows[1][
-            teamIndex
-          ]
-        );
-
-      if (
-        away !== "LOTTE" &&
-        home !== "LOTTE"
-      ) {
-        continue;
-      }
-
-      const awayScore =
-        nnum(
-          rows[0][
-            runIndex
-          ]
-        );
-
-      const homeScore =
-        nnum(
-          rows[1][
-            runIndex
-          ]
-        );
-
-      /*
-       * 최종 점수가 없는 테이블은
-       * 최근 경기로 사용하지 않는다.
-       */
-      if (
-        awayScore === null ||
-        homeScore === null
-      ) {
-        continue;
-      }
-
-      const before =
-        cleanText(
-          html.slice(
-            Math.max(
-              0,
-              match.index -
-                2000
-            ),
-            match.index
-          )
-        );
-
-      /*
-       * 취소된 경기는 제외.
-       */
-      if (
-        /CANCELLED|CANCELED|취소/i.test(
-          before
-        )
-      ) {
-        continue;
-      }
-
-      const times = [
-        ...before.matchAll(
-          /\b([01]?\d|2[0-3]):[0-5]\d\b/g
-        )
-      ];
-
-      const time =
-        times.length
-          ? times[
-              times.length - 1
-            ][0]
-          : "";
-
-      let location = "";
-
-      const stadiums = [
-        "잠실",
-        "사직",
-        "대구",
-        "대전",
-        "광주",
-        "수원",
-        "창원",
-        "고척",
-        "문학",
-        "울산",
-        "포항"
-      ];
-
       for (
-        const stadium
-        of stadiums
+        const x of raw
       ) {
-        if (
-          before.includes(
-            stadium
-          )
-        ) {
-          location =
-            stadium;
-        }
-      }
-
-      /*
-       * 영문 페이지의 구장명도 처리.
-       */
-      if (!location) {
-        for (
-          const [
-            code,
-            korean
-          ]
-          of Object.entries(
-            LOCATION_KO
-          )
-        ) {
-          if (
-            new RegExp(
-              `\\b${code}\\b`,
-              "i"
-            ).test(
-              before
-            )
-          ) {
-            location =
-              korean;
-          }
-        }
-      }
-
-      const key =
-        `${date}|${away}|${home}`;
-
-      if (
-        seen.has(key)
-      ) {
-        continue;
-      }
-
-      seen.add(key);
-
-      /*
-       * gameId는 과거 게임센터 API에서
-       * 실제 ID를 얻을 수 있으면 사용한다.
-       * 실패해도 D-3 표시는 가능하다.
-       */
-      let gameId = "";
-
-      try {
-        const rawGames =
-          await gameList(
+        const g =
+          publicGame(
+            x,
             date
           );
 
-        const matched =
-          rawGames.find(
-            x => {
-              const g =
-                publicGame(
-                  x,
-                  date
-                );
-
-              return (
-                g.away === away &&
-                g.home === home
-              );
-            }
-          );
-
-        if (matched) {
-          gameId =
-            String(
-              matched.G_ID ||
-              ""
-            );
+        if (
+          !isLotte(g)
+        ) {
+          continue;
         }
-      } catch (_) {
-        gameId = "";
+
+        /*
+         * 취소/연기 경기 제외
+         */
+        if (
+          String(
+            x.CANCEL_SC_NM ||
+            ""
+          ).trim()
+        ) {
+          continue;
+        }
+
+        /*
+         * 진단 결과로 확인한
+         * KBO 종료 상태 코드.
+         */
+        if (
+          String(
+            x.GAME_STATE_SC ||
+            ""
+          ) !== "3"
+        ) {
+          continue;
+        }
+
+        /*
+         * 최종 점수가 실제로
+         * 존재하는 경기만 사용.
+         */
+        if (
+          g.awayScore === null ||
+          g.homeScore === null
+        ) {
+          continue;
+        }
+
+        const key =
+          g.gameId ||
+          `${date}|${g.away}|${g.home}`;
+
+        if (
+          seen.has(key)
+        ) {
+          continue;
+        }
+
+        seen.add(key);
+
+        found.push({
+          gameId:
+            g.gameId,
+
+          date:
+            g.date,
+
+          time:
+            g.time,
+
+          away:
+            g.away,
+
+          home:
+            g.home,
+
+          awayScore:
+            g.awayScore,
+
+          homeScore:
+            g.homeScore,
+
+          location:
+            g.location,
+
+          status:
+            "종료"
+        });
       }
+    }
 
-      found.push({
-        gameId,
+    found.sort(
+      (a,b) =>
+        gameSortKey(b)
+          .localeCompare(
+            gameSortKey(a)
+          )
+    );
 
-        date,
-        time,
-
-        away,
-        home,
-
-        awayScore,
-        homeScore,
-
-        location,
-
-        status:
-          "종료"
-      });
+    /*
+     * 첫 7일 안에서 3경기를
+     * 찾았다면 더 과거를
+     * 조회하지 않는다.
+     */
+    if (
+      found.length >=
+      wanted
+    ) {
+      break;
     }
   }
-
-  found.sort(
-    (a, b) =>
-      gameSortKey(b)
-        .localeCompare(
-          gameSortKey(a)
-        )
-  );
 
   return found.slice(
     0,
@@ -2091,7 +1903,7 @@ async function postSchedule(
     new URLSearchParams();
 
   for (
-    const [k, v]
+    const [k,v]
     of Object.entries(
       params
     )
@@ -2150,8 +1962,7 @@ function tableJson(
 
   try {
     const t =
-      typeof raw ===
-      "string"
+      typeof raw === "string"
         ? JSON.parse(raw)
         : raw;
 
@@ -2179,7 +1990,9 @@ function tableJson(
       tfoot:
         cv(t.tfoot)
     };
-  } catch (_) {
+  }
+
+  catch (_) {
     return {
       headers: [],
       rows: [],
@@ -2217,7 +2030,8 @@ function scoreDetail(
     a.rows[1] ||
     [];
 
-  const innings = [];
+  const innings =
+    [];
 
   for (
     let i = 0;
@@ -2413,13 +2227,14 @@ function boxDetail(
       : [];
 
   const team =
-    (h, p) => ({
+    (h,p) => ({
       hitters:
         hittersFromTables(
           tableJson(
             h &&
             h.table1
           ),
+
           tableJson(
             h &&
             h.table3
@@ -2458,7 +2273,8 @@ function starters(
   const seen =
     new Set();
 
-  const out = [];
+  const out =
+    [];
 
   for (
     const h of
@@ -2492,7 +2308,7 @@ function starters(
 
   return out
     .sort(
-      (a, b) =>
+      (a,b) =>
         a.order -
         b.order
     )
@@ -2530,7 +2346,7 @@ async function gameDetail(
       g.gameId
   };
 
-  const [s, b] =
+  const [s,b] =
     await Promise.all([
       postSchedule(
         "GetScoreBoardScroll",
@@ -2591,8 +2407,7 @@ function gameSortKey(g) {
     `${g.date || ""}T` +
     `${g.time || "00:00"}`
   );
-      }
-export default {
+        }export default {
   async fetch(
     request,
     env
@@ -2637,37 +2452,9 @@ export default {
           new Date().toISOString()
       };
 
-      /*
-       * D-1 오늘 경기
-       */
-      /*
- * 임시 진단용:
- * KBO 과거 날짜 원본 확인
- */
-if (
-  type === "debug"
-) {
-  const date =
-    String(
-      q.date ||
-      "2026-08-29"
-    );
-
-  const raw =
-    await gameList(
-      date
-    );
-
-  payload = {
-    ...payload,
-    date,
-    raw
-  };
-}
-
-else if (
-  type === "score"
-) {
+      if (
+        type === "score"
+      ) {
         const date =
           todayKST();
 
@@ -2722,22 +2509,12 @@ else if (
         };
       }
 
-      /*
-       * D-3
-       * 최근 3경기 + 예정 3경기
-       */
       else if (
         type === "schedule"
       ) {
         const current =
           currentMonthKST();
 
-        /*
-         * 예정 경기 검색용.
-         * 이전 두 달도 읽어두지만
-         * recent는 별도의 공식
-         * 스코어보드 조회를 사용한다.
-         */
         const months = [
           shiftMonth(
             current,
@@ -2813,20 +2590,12 @@ else if (
         const today =
           todayKST();
 
-        /*
-         * 새 recent 함수가
-         * 실제 종료 경기 3개를
-         * 스코어보드에서 가져온다.
-         */
         const recent =
           await recentLotteFinalGames(
             today,
             3
           );
 
-        /*
-         * 예정 경기 정확히 3개
-         */
         const upcoming =
           allGames
             .filter(
@@ -2848,7 +2617,6 @@ else if (
             current,
 
           recent,
-
           upcoming,
 
           games:
@@ -2860,16 +2628,12 @@ else if (
         };
       }
 
-      /*
-       * D-1 경기 상세
-       */
       else if (
         type === "game"
       ) {
         const gameId =
           String(
-            q.gameId ||
-            ""
+            q.gameId || ""
           ).trim();
 
         if (!gameId) {
@@ -2895,10 +2659,8 @@ else if (
           ).find(
             x =>
               String(
-                x.G_ID ||
-                ""
-              ) ===
-              gameId
+                x.G_ID || ""
+              ) === gameId
           );
 
         if (!raw) {
@@ -2925,9 +2687,6 @@ else if (
         };
       }
 
-      /*
-       * D-3 리그 순위
-       */
       else if (
         type ===
         "standings"
@@ -2970,12 +2729,8 @@ else if (
         };
       }
 
-      /*
-       * D-2 롯데 엔트리
-       */
       else if (
-        type ===
-        "roster"
+        type === "roster"
       ) {
         const html =
           await get(
@@ -3019,23 +2774,17 @@ else if (
         };
       }
 
-      /*
-       * D-2 선수 상세
-       */
       else if (
-        type ===
-        "player"
+        type === "player"
       ) {
         const name =
           (
-            q.name ||
-            ""
+            q.name || ""
           ).trim();
 
         const number =
           (
-            q.number ||
-            ""
+            q.number || ""
           ).trim();
 
         const position =

@@ -597,7 +597,7 @@ function shiftMonth(
 function scheduleDateFromLabel(
   label,
   month
-) {  
+) {
   const m =
     String(
       label || ""
@@ -613,23 +613,18 @@ function scheduleDateFromLabel(
     `${month.slice(0, 4)}-` +
     `${m[1]}-${m[2]}`
   );
-}
-
-function parseScheduleGames(
+    }function parseScheduleGames(
   html,
   month
 ) {
   const out = [];
-
   const rows =
     html.match(
       /<tr\b[\s\S]*?<\/tr>/gi
     ) || [];
 
   let currentDate = "";
-
-  const today =
-    todayKST();
+  const today = todayKST();
 
   for (const row of rows) {
     const cells = [
@@ -671,30 +666,39 @@ function parseScheduleGames(
     }
 
     const after =
-      cells.slice(timeIndex + 1);
+      cells.slice(
+        timeIndex + 1
+      );
 
     const teamPositions = [];
 
-    after.forEach((v, i) => {
-      const upper =
-        v.toUpperCase();
+    after.forEach(
+      (v, i) => {
+        const upper =
+          v.toUpperCase();
 
-      if (
-        TEAM_NAMES.includes(
-          upper
-        )
-      ) {
-        teamPositions.push(i);
+        if (
+          TEAM_NAMES.includes(
+            upper
+          )
+        ) {
+          teamPositions.push(i);
+        }
       }
-    });
+    );
 
-    if (teamPositions.length < 2) {
+    if (
+      teamPositions.length < 2
+    ) {
       const joined =
         after.join(" ");
 
       const foundTeams = [];
 
-      for (const team of TEAM_NAMES) {
+      for (
+        const team
+        of TEAM_NAMES
+      ) {
         const re =
           new RegExp(
             `\\b${team}\\b`,
@@ -743,20 +747,26 @@ function parseScheduleGames(
 
       const awayScore =
         scoreMatch
-          ? Number(scoreMatch[1])
+          ? Number(
+              scoreMatch[1]
+            )
           : null;
 
       const homeScore =
         scoreMatch
-          ? Number(scoreMatch[2])
+          ? Number(
+              scoreMatch[2]
+            )
           : null;
 
       let location = "";
       let locationCode = "";
 
       for (
-        const code of
-        Object.keys(LOCATION_KO)
+        const code
+        of Object.keys(
+          LOCATION_KO
+        )
       ) {
         if (
           new RegExp(
@@ -774,24 +784,36 @@ function parseScheduleGames(
       let status = "예정";
 
       if (
-        /POSTPONED/i.test(joined)
+        /POSTPONED/i.test(
+          joined
+        )
       ) {
         status = "연기";
-      } else if (
+      }
+
+      else if (
         /CANCELLED|CANCELED/i.test(
           joined
         )
       ) {
         status = "취소";
-      } else if (
-        /SUSPENDED/i.test(joined)
+      }
+
+      else if (
+        /SUSPENDED/i.test(
+          joined
+        )
       ) {
         status = "중단";
-      } else if (
+      }
+
+      else if (
         currentDate < today
       ) {
         status = "종료";
-      } else if (
+      }
+
+      else if (
         awayScore !== null &&
         homeScore !== null
       ) {
@@ -800,7 +822,8 @@ function parseScheduleGames(
 
       out.push({
         date: currentDate,
-        time: cells[timeIndex],
+        time:
+          cells[timeIndex],
         away,
         home,
         awayScore,
@@ -855,10 +878,14 @@ function parseScheduleGames(
 
     if (scoreMatch) {
       awayScore =
-        Number(scoreMatch[1]);
+        Number(
+          scoreMatch[1]
+        );
 
       homeScore =
-        Number(scoreMatch[2]);
+        Number(
+          scoreMatch[2]
+        );
     }
 
     if (
@@ -872,7 +899,9 @@ function parseScheduleGames(
           )
           .map(Number);
 
-      if (nums.length >= 2) {
+      if (
+        nums.length >= 2
+      ) {
         awayScore = nums[0];
         homeScore = nums[1];
       }
@@ -895,7 +924,9 @@ function parseScheduleGames(
 
     const rawStatus =
       tail.find(v =>
-        /POSTPONED|CANCELLED|CANCELED|SUSPENDED/i.test(v)
+        /POSTPONED|CANCELLED|CANCELED|SUSPENDED/i.test(
+          v
+        )
       ) || "";
 
     let status = "예정";
@@ -906,23 +937,31 @@ function parseScheduleGames(
       )
     ) {
       status = "연기";
-    } else if (
+    }
+
+    else if (
       /CANCELLED|CANCELED/i.test(
         rawStatus
       )
     ) {
       status = "취소";
-    } else if (
+    }
+
+    else if (
       /SUSPENDED/i.test(
         rawStatus
       )
     ) {
       status = "중단";
-    } else if (
+    }
+
+    else if (
       currentDate < today
     ) {
       status = "종료";
-    } else if (
+    }
+
+    else if (
       awayScore !== null &&
       homeScore !== null
     ) {
@@ -930,10 +969,17 @@ function parseScheduleGames(
     }
 
     out.push({
-      date: currentDate,
-      time: cells[timeIndex],
+      date:
+        currentDate,
+
+      time:
+        cells[
+          timeIndex
+        ],
+
       away,
       home,
+
       awayScore,
       homeScore,
 
@@ -945,15 +991,20 @@ function parseScheduleGames(
           : "",
 
       locationCode,
+
       status,
-      raw: tailText
+
+      raw:
+        tailText
     });
   }
 
   return out;
 }
 
-function scoreboardGames(html) {
+function scoreboardGames(
+  html
+) {
   const games = [];
 
   const matches = [
@@ -964,7 +1015,9 @@ function scoreboardGames(html) {
 
   for (const m of matches) {
     const parsed =
-      tables(m[0])[0];
+      tables(
+        m[0]
+      )[0];
 
     if (
       !parsed ||
@@ -974,18 +1027,21 @@ function scoreboardGames(html) {
     }
 
     const headers =
-      parsed.headers.map(h =>
-        h.toUpperCase()
+      parsed.headers.map(
+        h =>
+          h.toUpperCase()
       );
 
     const teamIndex =
       headers.findIndex(
-        h => h === "TEAM"
+        h =>
+          h === "TEAM"
       );
 
     const rIndex =
       headers.findIndex(
-        h => h === "R"
+        h =>
+          h === "R"
       );
 
     if (
@@ -997,21 +1053,29 @@ function scoreboardGames(html) {
 
     const rows =
       parsed.rows.filter(
-        r => r.length > rIndex
+        r =>
+          r.length >
+          rIndex
       );
 
-    if (rows.length < 2) {
+    if (
+      rows.length < 2
+    ) {
       continue;
     }
 
     const away =
       String(
-        rows[0][teamIndex] || ""
+        rows[0][
+          teamIndex
+        ] || ""
       ).toUpperCase();
 
     const home =
       String(
-        rows[1][teamIndex] || ""
+        rows[1][
+          teamIndex
+        ] || ""
       ).toUpperCase();
 
     if (
@@ -1041,7 +1105,8 @@ function scoreboardGames(html) {
     const time =
       timeMatches.length
         ? timeMatches[
-            timeMatches.length - 1
+            timeMatches.length -
+              1
           ][0]
         : "";
 
@@ -1050,38 +1115,57 @@ function scoreboardGames(html) {
 
     for (
       const code of
-      Object.keys(LOCATION_KO)
+      Object.keys(
+        LOCATION_KO
+      )
     ) {
       if (
         new RegExp(
           `\\b${code}\\b`,
           "i"
-        ).test(before)
+        ).test(
+          before
+        )
       ) {
         locationCode = code;
+
         location =
-          LOCATION_KO[code];
+          LOCATION_KO[
+            code
+          ];
       }
     }
 
-    const n = v =>
-      /^-?\d+$/.test(
-        String(v || "")
-      )
-        ? Number(v)
-        : null;
+    const n =
+      v =>
+        /^-?\d+$/.test(
+          String(
+            v || ""
+          )
+        )
+          ? Number(v)
+          : null;
 
     const awayScore =
-      n(rows[0][rIndex]);
+      n(
+        rows[0][
+          rIndex
+        ]
+      );
 
     const homeScore =
-      n(rows[1][rIndex]);
+      n(
+        rows[1][
+          rIndex
+        ]
+      );
 
     const total =
       (row, key) => {
         const i =
           headers.findIndex(
-            h => h === key
+            h =>
+              h === key
           );
 
         return i >= 0
@@ -1092,54 +1176,72 @@ function scoreboardGames(html) {
     games.push({
       away,
       home,
+
       awayScore,
       homeScore,
+
       time,
       location,
       locationCode,
 
       status:
-        /\bFINAL\b/i.test(before)
+        /\bFINAL\b/i.test(
+          before
+        )
           ? "종료"
           : "진행 중",
 
       totals: {
         away: {
-          R: total(
-            rows[0],
-            "R"
-          ),
-          H: total(
-            rows[0],
-            "H"
-          ),
-          E: total(
-            rows[0],
-            "E"
-          ),
-          B: total(
-            rows[0],
-            "B"
-          )
+          R:
+            total(
+              rows[0],
+              "R"
+            ),
+
+          H:
+            total(
+              rows[0],
+              "H"
+            ),
+
+          E:
+            total(
+              rows[0],
+              "E"
+            ),
+
+          B:
+            total(
+              rows[0],
+              "B"
+            )
         },
 
         home: {
-          R: total(
-            rows[1],
-            "R"
-          ),
-          H: total(
-            rows[1],
-            "H"
-          ),
-          E: total(
-            rows[1],
-            "E"
-          ),
-          B: total(
-            rows[1],
-            "B"
-          )
+          R:
+            total(
+              rows[1],
+              "R"
+            ),
+
+          H:
+            total(
+              rows[1],
+              "H"
+            ),
+
+          E:
+            total(
+              rows[1],
+              "E"
+            ),
+
+          B:
+            total(
+              rows[1],
+              "B"
+            )
         }
       },
 
@@ -1148,7 +1250,10 @@ function scoreboardGames(html) {
           parsed.headers,
 
         rows:
-          rows.slice(0, 2)
+          rows.slice(
+            0,
+            2
+          )
       }
     });
   }
@@ -1156,29 +1261,52 @@ function scoreboardGames(html) {
   return games;
 }
 
+
+/*
+ * KBO 게임센터 API
+ */
+
 const GAME_LIST_API =
   `${BASE}/ws/Main.asmx/GetKboGameList`;
 
 const SCHEDULE_API =
   `${BASE}/ws/Schedule.asmx`;
 
+/*
+ * 중요:
+ * KBO API 요청에 사용하는 User-Agent.
+ */
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
   "AppleWebKit/537.36 (KHTML, like Gecko) " +
   "Chrome/130.0 Safari/537.36";
 
-function compactDate(v = "") {
+function compactDate(
+  v = ""
+) {
   return String(v)
-    .replace(/\D/g, "")
-    .slice(0, 8);
+    .replace(
+      /\D/g,
+      ""
+    )
+    .slice(
+      0,
+      8
+    );
 }
 
-function normDate(v = "") {
+function normDate(
+  v = ""
+) {
   const d =
     compactDate(v);
 
   return d.length === 8
-    ? `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`
+    ? (
+        `${d.slice(0, 4)}-` +
+        `${d.slice(4, 6)}-` +
+        `${d.slice(6, 8)}`
+      )
     : "";
 }
 
@@ -1186,7 +1314,11 @@ function shiftDate(
   date,
   delta
 ) {
-  const [y, m, d] =
+  const [
+    y,
+    m,
+    d
+  ] =
     date
       .split("-")
       .map(Number);
@@ -1223,8 +1355,10 @@ function nnum(v) {
 
   const n =
     Number(
-      String(v)
-        .replace(/,/g, "")
+      String(v).replace(
+        /,/g,
+        ""
+      )
     );
 
   return Number.isFinite(n)
@@ -1243,7 +1377,9 @@ function person(
 
   return name
     ? {
-        id: id || null,
+        id:
+          id || null,
+
         name
       }
     : null;
@@ -1255,7 +1391,9 @@ function teamName(
 ) {
   const x =
     String(
-      name || id || ""
+      name ||
+      id ||
+      ""
     )
       .trim()
       .toUpperCase();
@@ -1303,7 +1441,8 @@ async function gameList(
     await fetch(
       GAME_LIST_API,
       {
-        method: "POST",
+        method:
+          "POST",
 
         headers: {
           "content-type":
@@ -1321,7 +1460,9 @@ async function gameList(
             leId: "1",
             srId: "0",
             date:
-              compactDate(date)
+              compactDate(
+                date
+              )
           })
       }
     );
@@ -1343,7 +1484,10 @@ async function gameList(
   const clean =
     (
       cut >= 0
-        ? text.slice(0, cut)
+        ? text.slice(
+            0,
+            cut
+          )
         : text
     ).trim();
 
@@ -1364,8 +1508,9 @@ function publicGame(
   fallback = ""
 ) {
   const date =
-    normDate(x.G_DT) ||
-    fallback;
+    normDate(
+      x.G_DT
+    ) || fallback;
 
   const away =
     teamName(
@@ -1381,7 +1526,8 @@ function publicGame(
 
   const cancel =
     String(
-      x.CANCEL_SC_NM || ""
+      x.CANCEL_SC_NM ||
+      ""
     ).trim();
 
   let status =
@@ -1399,20 +1545,26 @@ function publicGame(
       )
         ? "취소"
         : cancel;
-  } else if (
+  }
+
+  else if (
     inn !== null &&
     inn > 0
   ) {
     status =
       `${inn}회` +
       `${String(
-        x.GAME_TB_SC_NM || ""
+        x.GAME_TB_SC_NM ||
+        ""
       ).trim()}`;
-  } else if (
+  }
+
+  else if (
     date &&
     date < todayKST()
   ) {
-    status = "종료";
+    status =
+      "종료";
   }
 
   return {
@@ -1447,16 +1599,21 @@ function publicGame(
       ),
 
     status,
-    inning: inn,
+
+    inning:
+      inn,
 
     topBottom:
       String(
-        x.GAME_TB_SC_NM || ""
+        x.GAME_TB_SC_NM ||
+        ""
       ),
 
     count: {
       ball:
-        nnum(x.BALL_CN),
+        nnum(
+          x.BALL_CN
+        ),
 
       strike:
         nnum(
@@ -1464,7 +1621,9 @@ function publicGame(
         ),
 
       out:
-        nnum(x.OUT_CN)
+        nnum(
+          x.OUT_CN
+        )
     },
 
     runners: {
@@ -1516,11 +1675,27 @@ function isLotte(g) {
   return (
     g &&
     (
-      g.away === "LOTTE" ||
-      g.home === "LOTTE"
+      g.away ===
+        "LOTTE" ||
+      g.home ===
+        "LOTTE"
     )
   );
 }
+
+
+/*
+ * D-3 최근 경기
+ *
+ * 기존 방식:
+ * 과거 GetKboGameList의 점수가
+ * null이면 경기를 버렸음.
+ *
+ * 새 방식:
+ * 공식 KBO ScoreBoard 페이지를
+ * 날짜별로 직접 읽어서
+ * 최종 점수를 찾는다.
+ */
 
 async function recentLotteFinalGames(
   today,
@@ -1530,94 +1705,377 @@ async function recentLotteFinalGames(
   const seen =
     new Set();
 
-  for (
-    let start = 1;
-    start <= 42 &&
-    found.length < wanted;
-    start += 7
+  const teamMap = {
+    "롯데": "LOTTE",
+    "LOTTE": "LOTTE",
+
+    "삼성": "SAMSUNG",
+    "SAMSUNG": "SAMSUNG",
+
+    "두산": "DOOSAN",
+    "DOOSAN": "DOOSAN",
+
+    "한화": "HANWHA",
+    "HANWHA": "HANWHA",
+
+    "키움": "KIWOOM",
+    "KIWOOM": "KIWOOM",
+
+    "KIA": "KIA",
+    "SSG": "SSG",
+    "LG": "LG",
+    "KT": "KT",
+    "NC": "NC"
+  };
+
+  function normalizeTeam(
+    value
   ) {
-    const dates =
-      Array.from(
-        { length: 7 },
-        (_, i) =>
-          shiftDate(
-            today,
-            -(start + i)
-          )
+    const s =
+      String(
+        value || ""
+      ).trim();
+
+    return (
+      teamMap[s] ||
+      teamName(
+        s,
+        s
+      )
+    );
+  }
+
+  /*
+   * 시즌 중 최근 3경기는
+   * 보통 며칠 안에 존재하지만
+   * 우천취소/휴식일을 고려해
+   * 최대 45일 전까지 확인.
+   */
+  for (
+    let daysAgo = 1;
+    daysAgo <= 45 &&
+    found.length < wanted;
+    daysAgo++
+  ) {
+    const date =
+      shiftDate(
+        today,
+        -daysAgo
       );
 
-    const batch =
-      await Promise.all(
-        dates.map(
-          date =>
-            gameList(date)
-              .then(raw => ({
-                date,
-                raw
-              }))
-              .catch(() => ({
-                date,
-                raw: []
-              }))
-        )
-      );
+    let html = "";
 
-    for (
-      const {
-        date,
-        raw
-      } of batch
-    ) {
-      for (
-        const x of raw
-      ) {
-        const g =
-          publicGame(
-            x,
-            date
+    /*
+     * 영문 KBO 스코어보드를
+     * 먼저 사용한다.
+     */
+    try {
+      html =
+        await get(
+          `${ENG}/Schedule/Scoreboard.aspx?searchDate=${date}`
+        );
+    } catch (_) {
+      /*
+       * 실패하면 한국 KBO
+       * 스코어보드로 한 번 더 시도.
+       */
+      try {
+        html =
+          await get(
+            `${BASE}/Schedule/ScoreBoard.aspx?searchDate=${date}`
           );
-
-        if (
-          !isLotte(g) ||
-          String(
-            x.CANCEL_SC_NM ||
-            ""
-          ).trim() ||
-          g.awayScore ===
-            null ||
-          g.homeScore ===
-            null
-        ) {
-          continue;
-        }
-
-        const key =
-          g.gameId ||
-          `${date}|${g.away}|${g.home}`;
-
-        if (
-          seen.has(key)
-        ) {
-          continue;
-        }
-
-        seen.add(key);
-
-        g.status =
-          "종료";
-
-        found.push(g);
+      } catch (_) {
+        continue;
       }
     }
 
-    found.sort(
-      (a, b) =>
-        gameSortKey(b)
-          .localeCompare(
-            gameSortKey(a)
+    const tableMatches = [
+      ...html.matchAll(
+        /<table\b[\s\S]*?<\/table>/gi
+      )
+    ];
+
+    for (
+      const match
+      of tableMatches
+    ) {
+      const parsed =
+        tables(
+          match[0]
+        )[0];
+
+      if (
+        !parsed ||
+        parsed.rows.length < 2
+      ) {
+        continue;
+      }
+
+      const headers =
+        parsed.headers.map(
+          h =>
+            String(
+              h || ""
+            )
+              .trim()
+              .toUpperCase()
+        );
+
+      const teamIndex =
+        headers.findIndex(
+          h =>
+            h === "TEAM" ||
+            h === "팀" ||
+            h === "팀명"
+        );
+
+      const runIndex =
+        headers.findIndex(
+          h =>
+            h === "R" ||
+            h === "득점"
+        );
+
+      if (
+        teamIndex < 0 ||
+        runIndex < 0
+      ) {
+        continue;
+      }
+
+      const rows =
+        parsed.rows.filter(
+          row =>
+            row.length >
+            Math.max(
+              teamIndex,
+              runIndex
+            )
+        );
+
+      if (
+        rows.length < 2
+      ) {
+        continue;
+      }
+
+      const away =
+        normalizeTeam(
+          rows[0][
+            teamIndex
+          ]
+        );
+
+      const home =
+        normalizeTeam(
+          rows[1][
+            teamIndex
+          ]
+        );
+
+      if (
+        away !== "LOTTE" &&
+        home !== "LOTTE"
+      ) {
+        continue;
+      }
+
+      const awayScore =
+        nnum(
+          rows[0][
+            runIndex
+          ]
+        );
+
+      const homeScore =
+        nnum(
+          rows[1][
+            runIndex
+          ]
+        );
+
+      /*
+       * 최종 점수가 없는 테이블은
+       * 최근 경기로 사용하지 않는다.
+       */
+      if (
+        awayScore === null ||
+        homeScore === null
+      ) {
+        continue;
+      }
+
+      const before =
+        cleanText(
+          html.slice(
+            Math.max(
+              0,
+              match.index -
+                2000
+            ),
+            match.index
           )
-    );
+        );
+
+      /*
+       * 취소된 경기는 제외.
+       */
+      if (
+        /CANCELLED|CANCELED|취소/i.test(
+          before
+        )
+      ) {
+        continue;
+      }
+
+      const times = [
+        ...before.matchAll(
+          /\b([01]?\d|2[0-3]):[0-5]\d\b/g
+        )
+      ];
+
+      const time =
+        times.length
+          ? times[
+              times.length - 1
+            ][0]
+          : "";
+
+      let location = "";
+
+      const stadiums = [
+        "잠실",
+        "사직",
+        "대구",
+        "대전",
+        "광주",
+        "수원",
+        "창원",
+        "고척",
+        "문학",
+        "울산",
+        "포항"
+      ];
+
+      for (
+        const stadium
+        of stadiums
+      ) {
+        if (
+          before.includes(
+            stadium
+          )
+        ) {
+          location =
+            stadium;
+        }
+      }
+
+      /*
+       * 영문 페이지의 구장명도 처리.
+       */
+      if (!location) {
+        for (
+          const [
+            code,
+            korean
+          ]
+          of Object.entries(
+            LOCATION_KO
+          )
+        ) {
+          if (
+            new RegExp(
+              `\\b${code}\\b`,
+              "i"
+            ).test(
+              before
+            )
+          ) {
+            location =
+              korean;
+          }
+        }
+      }
+
+      const key =
+        `${date}|${away}|${home}`;
+
+      if (
+        seen.has(key)
+      ) {
+        continue;
+      }
+
+      seen.add(key);
+
+      /*
+       * gameId는 과거 게임센터 API에서
+       * 실제 ID를 얻을 수 있으면 사용한다.
+       * 실패해도 D-3 표시는 가능하다.
+       */
+      let gameId = "";
+
+      try {
+        const rawGames =
+          await gameList(
+            date
+          );
+
+        const matched =
+          rawGames.find(
+            x => {
+              const g =
+                publicGame(
+                  x,
+                  date
+                );
+
+              return (
+                g.away === away &&
+                g.home === home
+              );
+            }
+          );
+
+        if (matched) {
+          gameId =
+            String(
+              matched.G_ID ||
+              ""
+            );
+        }
+      } catch (_) {
+        gameId = "";
+      }
+
+      found.push({
+        gameId,
+
+        date,
+        time,
+
+        away,
+        home,
+
+        awayScore,
+        homeScore,
+
+        location,
+
+        status:
+          "종료"
+      });
+    }
   }
+
+  found.sort(
+    (a, b) =>
+      gameSortKey(b)
+        .localeCompare(
+          gameSortKey(a)
+        )
+  );
 
   return found.slice(
     0,
@@ -1648,7 +2106,8 @@ async function postSchedule(
     await fetch(
       `${SCHEDULE_API}/${method}`,
       {
-        method: "POST",
+        method:
+          "POST",
 
         headers: {
           "content-type":
@@ -1678,7 +2137,9 @@ async function postSchedule(
   return r.json();
 }
 
-function tableJson(raw) {
+function tableJson(
+  raw
+) {
   if (!raw) {
     return {
       headers: [],
@@ -1689,7 +2150,8 @@ function tableJson(raw) {
 
   try {
     const t =
-      typeof raw === "string"
+      typeof raw ===
+      "string"
         ? JSON.parse(raw)
         : raw;
 
@@ -1726,12 +2188,10 @@ function tableJson(raw) {
   }
 }
 
-function scoreDetail(raw) {
-  if (
-    !raw ||
-    raw.code === "200" ||
-    !raw.G_ID
-  ) {
+function scoreDetail(
+  raw
+) {
+  if (!raw) {
     return null;
   }
 
@@ -1746,13 +2206,16 @@ function scoreDetail(raw) {
     );
 
   const h =
-    a.headers[0] || [];
+    a.headers[0] ||
+    [];
 
   const ar =
-    a.rows[0] || [];
+    a.rows[0] ||
+    [];
 
   const hr =
-    a.rows[1] || [];
+    a.rows[1] ||
+    [];
 
   const innings = [];
 
@@ -1773,11 +2236,18 @@ function scoreDetail(raw) {
       )
     ) {
       innings.push({
-        inning: inn,
+        inning:
+          inn,
+
         away:
-          nnum(ar[i]),
+          nnum(
+            ar[i]
+          ),
+
         home:
-          nnum(hr[i])
+          nnum(
+            hr[i]
+          )
       });
     }
   }
@@ -1786,22 +2256,26 @@ function scoreDetail(raw) {
     r => ({
       runs:
         nnum(
-          r && r[0]
+          r &&
+          r[0]
         ),
 
       hits:
         nnum(
-          r && r[1]
+          r &&
+          r[1]
         ),
 
       errors:
         nnum(
-          r && r[2]
+          r &&
+          r[2]
         ),
 
       walks:
         nnum(
-          r && r[3]
+          r &&
+          r[3]
         )
     });
 
@@ -1822,7 +2296,9 @@ function scoreDetail(raw) {
   };
 }
 
-function pitchersFromTable(t) {
+function pitchersFromTable(
+  t
+) {
   return t.rows.map(
     c => ({
       name:
@@ -1882,10 +2358,12 @@ function hittersFromTables(
     i++
   ) {
     const m =
-      meta.rows[i] || [];
+      meta.rows[i] ||
+      [];
 
     const x =
-      total.rows[i] || [];
+      total.rows[i] ||
+      [];
 
     out.push({
       order:
@@ -1904,18 +2382,19 @@ function hittersFromTables(
         ),
 
       seasonAvg:
-        nnum(x[4])
+        nnum(
+          x[4]
+        )
     });
   }
 
   return out;
 }
 
-function boxDetail(raw) {
-  if (
-    !raw ||
-    raw.code === "200"
-  ) {
+function boxDetail(
+  raw
+) {
+  if (!raw) {
     return null;
   }
 
@@ -1938,17 +2417,20 @@ function boxDetail(raw) {
       hitters:
         hittersFromTables(
           tableJson(
-            h && h.table1
+            h &&
+            h.table1
           ),
           tableJson(
-            h && h.table3
+            h &&
+            h.table3
           )
         ),
 
       pitchers:
         pitchersFromTable(
           tableJson(
-            p && p.table
+            p &&
+            p.table
           )
         )
     });
@@ -1970,14 +2452,17 @@ function boxDetail(raw) {
   };
 }
 
-function starters(arr) {
+function starters(
+  arr
+) {
   const seen =
     new Set();
 
   const out = [];
 
   for (
-    const h of arr || []
+    const h of
+    arr || []
   ) {
     const o =
       parseInt(
@@ -2008,20 +2493,33 @@ function starters(arr) {
   return out
     .sort(
       (a, b) =>
-        a.order - b.order
+        a.order -
+        b.order
     )
-    .slice(0, 9);
+    .slice(
+      0,
+      9
+    );
 }
 
-async function gameDetail(g) {
+async function gameDetail(
+  g
+) {
   const seasonId =
     Number(
-      (g.gameId || "")
-        .slice(0, 4)
+      (
+        g.gameId ||
+        ""
+      ).slice(
+        0,
+        4
+      )
     ) ||
     Number(
-      todayKST()
-        .slice(0, 4)
+      todayKST().slice(
+        0,
+        4
+      )
     );
 
   const p = {
@@ -2058,7 +2556,8 @@ async function gameDetail(g) {
   const lineup =
     boxscore
       ? {
-          announced: true,
+          announced:
+            true,
 
           away: {
             slots:
@@ -2092,7 +2591,8 @@ function gameSortKey(g) {
     `${g.date || ""}T` +
     `${g.time || "00:00"}`
   );
-}export default {
+      }
+export default {
   async fetch(
     request,
     env
@@ -2102,12 +2602,6 @@ function gameSortKey(g) {
         request.url
       );
 
-    /*
-     * /api/kbo 이외의 요청은
-     * 기존 정적 사이트 그대로 전달.
-     *
-     * HTML에 별도의 JS를 삽입하지 않는다.
-     */
     if (
       url.pathname !==
       "/api/kbo"
@@ -2140,15 +2634,11 @@ function gameSortKey(g) {
 
       let payload = {
         updatedAt:
-          new Date()
-            .toISOString()
+          new Date().toISOString()
       };
 
       /*
-       * ============================
-       * D-1
-       * 오늘 경기
-       * ============================
+       * D-1 오늘 경기
        */
       if (
         type === "score"
@@ -2159,14 +2649,6 @@ function gameSortKey(g) {
         let games = [];
 
         try {
-          /*
-           * 공식 KBO 게임센터 API를
-           * 우선 사용한다.
-           *
-           * 여기서 G_ID도 같이 얻기 때문에
-           * 프런트의 경기 카드를 눌렀을 때
-           * 상세정보 API로 연결할 수 있다.
-           */
           games =
             (
               await gameList(
@@ -2185,12 +2667,7 @@ function gameSortKey(g) {
               );
         }
 
-        catch (_) {
-          /*
-           * 게임센터가 일시적으로
-           * 실패할 때만 영문 일정표를
-           * 예비 데이터로 사용한다.
-           */
+        catch (e) {
           const month =
             date.slice(
               0,
@@ -2221,10 +2698,8 @@ function gameSortKey(g) {
       }
 
       /*
-       * ============================
        * D-3
        * 최근 3경기 + 예정 3경기
-       * ============================
        */
       else if (
         type === "schedule"
@@ -2233,12 +2708,10 @@ function gameSortKey(g) {
           currentMonthKST();
 
         /*
-         * 예정 경기는 기존에 잘 나오고
-         * 있었으므로 기존 방식 유지.
-         *
-         * 월초/월말 경계에서도
-         * 충분히 찾을 수 있도록
-         * 2개월 전부터 다음 달까지 읽는다.
+         * 예정 경기 검색용.
+         * 이전 두 달도 읽어두지만
+         * recent는 별도의 공식
+         * 스코어보드 조회를 사용한다.
          */
         const months = [
           shiftMonth(
@@ -2265,19 +2738,12 @@ function gameSortKey(g) {
               month =>
                 get(
                   `${ENG}/Schedule/DailySchedule.aspx?searchDate=${month}`
+                ).then(
+                  html => ({
+                    month,
+                    html
+                  })
                 )
-                  .then(
-                    html => ({
-                      month,
-                      html
-                    })
-                  )
-                  .catch(
-                    () => ({
-                      month,
-                      html: ""
-                    })
-                  )
             )
           );
 
@@ -2288,12 +2754,10 @@ function gameSortKey(g) {
                 month,
                 html
               }) =>
-                html
-                  ? parseScheduleGames(
-                      html,
-                      month
-                    )
-                  : []
+                parseScheduleGames(
+                  html,
+                  month
+                )
             )
             .filter(
               (
@@ -2325,20 +2789,9 @@ function gameSortKey(g) {
           todayKST();
 
         /*
-         * 핵심 수정:
-         *
-         * 최근 경기만큼은 영문 일정표의
-         * 종료 문자열에 의존하지 않는다.
-         *
-         * 오늘부터 과거 날짜를 거슬러
-         * 공식 게임센터를 조회하고,
-         *
-         * 1. 롯데 경기
-         * 2. 취소 경기가 아님
-         * 3. 양 팀 최종 점수가 존재
-         *
-         * 이 세 조건을 만족한 실제 경기만
-         * 최근 경기로 인정한다.
+         * 새 recent 함수가
+         * 실제 종료 경기 3개를
+         * 스코어보드에서 가져온다.
          */
         const recent =
           await recentLotteFinalGames(
@@ -2347,9 +2800,7 @@ function gameSortKey(g) {
           );
 
         /*
-         * 예정 경기:
-         * 오늘 이후의 예정 경기 가운데
-         * 가장 가까운 세 경기.
+         * 예정 경기 정확히 3개
          */
         const upcoming =
           allGames
@@ -2385,17 +2836,15 @@ function gameSortKey(g) {
       }
 
       /*
-       * ============================
-       * D-1
-       * 경기 카드 클릭 후 상세정보
-       * ============================
+       * D-1 경기 상세
        */
       else if (
         type === "game"
       ) {
         const gameId =
           String(
-            q.gameId || ""
+            q.gameId ||
+            ""
           ).trim();
 
         if (!gameId) {
@@ -2404,11 +2853,6 @@ function gameSortKey(g) {
           );
         }
 
-        /*
-         * G_ID 앞 8자리가 경기 날짜.
-         * 예:
-         * 20260901....
-         */
         const date =
           normDate(
             gameId.slice(
@@ -2418,24 +2862,16 @@ function gameSortKey(g) {
           ) ||
           todayKST();
 
-        /*
-         * 해당 날짜의 게임센터 목록에서
-         * 같은 G_ID의 경기를 다시 찾는다.
-         *
-         * 이렇게 해야 현재 점수,
-         * 현재 이닝, B/S/O 등의
-         * 최신 상태도 같이 받을 수 있다.
-         */
-        const rawGames =
-          await gameList(
-            date
-          );
-
         const raw =
-          rawGames.find(
+          (
+            await gameList(
+              date
+            )
+          ).find(
             x =>
               String(
-                x.G_ID || ""
+                x.G_ID ||
+                ""
               ) ===
               gameId
           );
@@ -2452,28 +2888,20 @@ function gameSortKey(g) {
             date
           );
 
-        /*
-         * 스코어보드 + 박스스코어
-         * 상세정보 요청.
-         */
-        const detail =
-          await gameDetail(
-            game
-          );
-
         payload = {
           ...payload,
           date,
           game,
-          detail
+
+          detail:
+            await gameDetail(
+              game
+            )
         };
       }
 
       /*
-       * ============================
-       * D-3
-       * KBO 리그 순위
-       * ============================
+       * D-3 리그 순위
        */
       else if (
         type ===
@@ -2485,9 +2913,7 @@ function gameSortKey(g) {
           );
 
         const ts =
-          tables(
-            html
-          );
+          tables(html);
 
         const table =
           ts.find(
@@ -2520,13 +2946,11 @@ function gameSortKey(g) {
       }
 
       /*
-       * ============================
-       * D-2
-       * 롯데 등록 선수
-       * ============================
+       * D-2 롯데 엔트리
        */
       else if (
-        type === "roster"
+        type ===
+        "roster"
       ) {
         const html =
           await get(
@@ -2571,27 +2995,28 @@ function gameSortKey(g) {
       }
 
       /*
-       * ============================
-       * D-2
-       * 개별 선수 상세정보
-       * ============================
+       * D-2 선수 상세
        */
       else if (
-        type === "player"
+        type ===
+        "player"
       ) {
         const name =
           (
-            q.name || ""
+            q.name ||
+            ""
           ).trim();
 
         const number =
           (
-            q.number || ""
+            q.number ||
+            ""
           ).trim();
 
         const position =
           (
-            q.position || ""
+            q.position ||
+            ""
           ).trim();
 
         if (!name) {
@@ -2600,11 +3025,6 @@ function gameSortKey(g) {
           );
         }
 
-        /*
-         * 선수 이름만으로 찾으면
-         * 동명이인이 있을 수 있으므로
-         * 등번호/포지션도 함께 비교.
-         */
         const found =
           await findLottePlayer(
             name,
@@ -2654,11 +3074,6 @@ function gameSortKey(g) {
     }
 
     catch (error) {
-      console.error(
-        "KBO API ERROR:",
-        error
-      );
-
       return new Response(
         JSON.stringify({
           error:

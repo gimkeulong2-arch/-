@@ -597,9 +597,7 @@ function shiftMonth(
 function scheduleDateFromLabel(
   label,
   month
-) {  label,
-  month
-) {
+) {  
   const m =
     String(
       label || ""

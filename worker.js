@@ -1,67 +1,2681 @@
-const BASE="https://www.koreabaseball.com";
-const ENG="https://eng.koreabaseball.com";
-const GAME_LIST=`${BASE}/ws/Main.asmx/GetKboGameList`;
-const SCHEDULE_API=`${BASE}/ws/Schedule.asmx`;
-const UA="Mozilla/5.0 Chrome/130 Safari/537.36";
+const BASE = "https://www.koreabaseball.com";
+const ENG = "https://eng.koreabaseball.com";
 
-function decodeHtml(s=""){return s.replace(/&nbsp;/gi," ").replace(/&amp;/gi,"&").replace(/&quot;/gi,'"').replace(/&#39;/gi,"'").replace(/&lt;/gi,"<").replace(/&gt;/gi,">").replace(/&#(\d+);/g,(_,n)=>String.fromCharCode(Number(n)));}
-function cleanText(s=""){return decodeHtml(s.replace(/<script[\s\S]*?<\/script>/gi,"").replace(/<style[\s\S]*?<\/style>/gi,"").replace(/<br\s*\/?>/gi," ").replace(/<[^>]+>/g," ")).replace(/\s+/g," ").trim();}
-async function get(url){const r=await fetch(url,{headers:{"User-Agent":UA,Accept:"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8","Accept-Language":"ko-KR,ko;q=0.9,en;q=0.8"}});if(!r.ok)throw new Error(`KBO 요청 실패: ${r.status}`);return r.text();}
-function todayKST(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());}
-function currentMonthKST(){return todayKST().slice(0,7);}
-function num(v){if(v==null||v===""||v==="-")return null;const n=Number(String(v).replace(/,/g,""));return Number.isFinite(n)?n:null;}
-function compact(d){return String(d||"").replace(/\D/g,"").slice(0,8);}
-function normDate(v){const d=compact(v);return d.length===8?`${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`:"";}
-function shiftDate(date,delta){const[y,m,d]=date.split("-").map(Number),x=new Date(Date.UTC(y,m-1,d+delta));return `${x.getUTCFullYear()}-${String(x.getUTCMonth()+1).padStart(2,"0")}-${String(x.getUTCDate()).padStart(2,"0")}`;}
-function shiftMonth(month,delta){const[y,m]=month.split("-").map(Number),d=new Date(Date.UTC(y,m-1+delta,1));return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}`;}
-function tables(html){const out=[];for(const t of html.match(/<table\b[\s\S]*?<\/table>/gi)||[]){const rows=t.match(/<tr\b[\s\S]*?<\/tr>/gi)||[];let headers=[];const body=[];for(const row of rows){const th=[...row.matchAll(/<th\b[^>]*>([\s\S]*?)<\/th>/gi)].map(m=>cleanText(m[1]));const td=[...row.matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)].map(m=>cleanText(m[1]));if(th.length&&!headers.length)headers=th;if(td.length)body.push(td);}if(headers.length||body.length)out.push({headers,rows:body});}return out;}
+function decodeHtml(str = "") {
+  return str
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&#(\d+);/g, (_, n) =>
+      String.fromCharCode(Number(n))
+    );
+}
 
-function normalizePlayerPath(h=""){h=decodeHtml(h).trim();if(!h)return"";if(/^https?:\/\//i.test(h)){try{const u=new URL(h);if(!/koreabaseball\.com$/i.test(u.hostname))return"";return u.pathname+u.search;}catch{return"";}}return h.startsWith("/")?h:"/"+h.replace(/^\.?\//,"");}
-function extractPlayers(cell){const a=[];for(const m of cell.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)){const hm=m[1].match(/href\s*=\s*["']([^"']+)["']/i),label=cleanText(m[2]),pm=label.match(/^(.+?)\s*\(\s*(\d{1,3})\s*\)$/);if(pm)a.push({name:pm[1].trim(),number:pm[2],path:normalizePlayerPath(hm?hm[1]:"")});}if(!a.length){for(const m of cleanText(cell).matchAll(/([가-힣A-Za-zÀ-ÿ·.\-]+)\s*\(\s*(\d{1,3})\s*\)/g))a.push({name:m[1].trim(),number:m[2],path:""});}const seen=new Set();return a.filter(p=>{const k=`${p.name}|${p.number}`;if(seen.has(k))return false;seen.add(k);return true;});}
-function lotteRoster(html){for(const table of html.match(/<table\b[\s\S]*?<\/table>/gi)||[]){if(!cleanText(table).includes("롯데"))continue;for(const row of table.match(/<tr\b[\s\S]*?<\/tr>/gi)||[]){const cells=[...row.matchAll(/<(th|td)\b[^>]*>([\s\S]*?)<\/\1>/gi)].map(m=>m[2]);if(cells.length>=7&&cleanText(cells[0]).includes("롯데"))return{투수:extractPlayers(cells[3]),포수:extractPlayers(cells[4]),내야수:extractPlayers(cells[5]),외야수:extractPlayers(cells[6])};}}throw new Error("KBO 페이지에서 롯데 선수단 행을 찾지 못했습니다.");}
-function parseSearchResults(html){const out=[];for(const row of html.match(/<tr\b[\s\S]*?<\/tr>/gi)||[]){const c=[...row.matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)].map(m=>m[1]);if(c.length<4)continue;const href=(c[1].match(/href\s*=\s*["']([^"']+)["']/i)||[])[1]||"",p={number:cleanText(c[0]).replace(/^#$/, ""),name:cleanText(c[1]),team:cleanText(c[2]),position:cleanText(c[3]),path:normalizePlayerPath(href)};if(p.name&&p.team&&p.position&&p.path)out.push(p);}return out;}
-async function findLottePlayer(name,number="",position=""){const html=await get(`${BASE}/Player/Search.aspx?searchWord=${encodeURIComponent(name)}`),exact=parseSearchResults(html).filter(p=>p.name===name&&p.team.includes("롯데"));if(!exact.length)throw new Error(`${name} 선수의 롯데 검색 결과를 찾지 못했습니다.`);return exact.find(p=>number&&p.number===String(number)&&(!position||p.position.includes(position)))||exact.find(p=>number&&p.number===String(number))||exact.find(p=>position&&p.position.includes(position))||exact[0];}
-function parseProfile(html){const all=cleanText(html);const grab=label=>{const m=all.match(new RegExp(`${label}\\s*:\\s*([^·|]+?)(?=\\s+(?:선수명|등번호|생년월일|포지션|신장/체중|경력|입단 계약금|연봉|지명순위|입단년도)\\s*:|$)`));return m?m[1].trim():"";};return{name:grab("선수명"),number:grab("등번호").replace(/^No\.?\s*/i,""),birth:grab("생년월일"),position:grab("포지션"),size:grab("신장/체중"),career:grab("경력"),salary:grab("연봉")};}
-function seasonTables(html){return tables(html).filter(t=>t.rows.length&&/ERA|AVG|타율|안타|홈런|타점|득점|도루|W|L|SV|HLD|IP|SO|RBI|HR|OPS|OBP|SLG/i.test(`${t.headers.join(" ")} ${t.rows.flat().join(" ")}`)).slice(0,6);}
+function cleanText(html = "") {
+  return decodeHtml(
+    html
+      .replace(/<script[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[\s\S]*?<\/style>/gi, "")
+      .replace(/<br\s*\/?>/gi, " ")
+      .replace(/<[^>]+>/g, " ")
+  )
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-const TEAM_MAP={"롯데":"LOTTE",LOTTE:"LOTTE",LT:"LOTTE","삼성":"SAMSUNG",SAMSUNG:"SAMSUNG",SS:"SAMSUNG",LG:"LG","두산":"DOOSAN",DOOSAN:"DOOSAN",OB:"DOOSAN","한화":"HANWHA",HANWHA:"HANWHA",HH:"HANWHA",KIA:"KIA",HT:"KIA",SSG:"SSG",SK:"SSG","키움":"KIWOOM",KIWOOM:"KIWOOM",WO:"KIWOOM",KT:"KT",NC:"NC"};
-function teamCode(name="",id=""){return TEAM_MAP[String(name).trim().toUpperCase()]||TEAM_MAP[String(id).trim().toUpperCase()]||String(name||id).trim().toUpperCase();}
-function person(id,name){name=String(name||"").trim();return name?{id:id||null,name}:null;}
-async function gameList(date){const r=await fetch(GAME_LIST,{method:"POST",headers:{"Content-Type":"application/json; charset=UTF-8","User-Agent":UA,Referer:`${BASE}/Schedule/GameCenter/Main.aspx`},body:JSON.stringify({leId:"1",srId:"0",date:compact(date)})});if(!r.ok)throw new Error(`KBO 게임센터 요청 실패: ${r.status}`);const raw=await r.text(),i=raw.search(/<!DOCTYPE|<html/i),j=JSON.parse((i>=0?raw.slice(0,i):raw).trim()||"{}");return Array.isArray(j.game)?j.game:[];}
-function publicGame(g,fallback=""){const date=normDate(g.G_DT)||fallback,away=teamCode(g.AWAY_NM,g.AWAY_ID),home=teamCode(g.HOME_NM,g.HOME_ID),cancel=String(g.CANCEL_SC_NM||"").trim();let status="경기 전";if(cancel)status=/취소|CANCEL/i.test(cancel)?"취소":cancel;else if(date&&date<todayKST())status="종료";else if(num(g.GAME_INN_NO)!==null&&num(g.GAME_INN_NO)>0)status=`${num(g.GAME_INN_NO)}회${String(g.GAME_TB_SC_NM||"").trim()}`;else if(person(g.W_PIT_P_ID,g.W_PIT_P_NM)||person(g.L_PIT_P_ID,g.L_PIT_P_NM))status="종료";return{gameId:String(g.G_ID||""),date,time:String(g.G_TM||""),location:String(g.S_NM||""),away,home,awayName:String(g.AWAY_NM||away),homeName:String(g.HOME_NM||home),awayScore:num(g.T_SCORE_CN),homeScore:num(g.B_SCORE_CN),status,inning:num(g.GAME_INN_NO),topBottom:String(g.GAME_TB_SC_NM||""),count:{ball:num(g.BALL_CN),strike:num(g.STRIKE_CN),out:num(g.OUT_CN)},runners:{first:num(g.B1_BAT_ORDER_NO)!==null,second:num(g.B2_BAT_ORDER_NO)!==null,third:num(g.B3_BAT_ORDER_NO)!==null},currentBatter:person(g.T_P_ID,g.T_P_NM),currentPitcher:person(g.B_P_ID,g.B_P_NM),startingPitchers:{away:person(g.T_PIT_P_ID,g.T_PIT_P_NM),home:person(g.B_PIT_P_ID,g.B_PIT_P_NM)},decisions:{winner:person(g.W_PIT_P_ID,g.W_PIT_P_NM),loser:person(g.L_PIT_P_ID,g.L_PIT_P_NM),save:person(g.SV_PIT_P_ID,g.SV_PIT_P_NM)}};}
-function isLotte(g){return g&&(g.away==="LOTTE"||g.home==="LOTTE");}
-async function recentLotte(today,wanted=3){const out=[],seen=new Set();for(let start=1;start<=28&&out.length<wanted;start+=7){const dates=Array.from({length:7},(_,i)=>shiftDate(today,-(start+i))),batch=await Promise.all(dates.map(date=>gameList(date).then(raw=>({date,raw})).catch(()=>({date,raw:[]}))));for(const {date,raw} of batch)for(const x of raw){const g=publicGame(x,date);if(!isLotte(g)||String(x.CANCEL_SC_NM||"").trim()||g.awayScore===null||g.homeScore===null)continue;const k=g.gameId||`${g.date}|${g.away}|${g.home}`;if(seen.has(k))continue;seen.add(k);g.status="종료";out.push(g);}out.sort((a,b)=>`${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`));}return out.slice(0,wanted);}
+async function get(url) {
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 Chrome/130 Safari/537.36",
+      Accept:
+        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language":
+        "ko-KR,ko;q=0.9,en;q=0.8"
+    }
+  });
 
-async function postSchedule(path,params){const body=new URLSearchParams();for(const[k,v]of Object.entries(params))body.set(k,String(v));const r=await fetch(`${SCHEDULE_API}/${path}`,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded; charset=UTF-8","X-Requested-With":"XMLHttpRequest","User-Agent":UA,Referer:`${BASE}/Schedule/GameCenter/Main.aspx`},body:body.toString()});if(!r.ok)throw new Error(`${path} 요청 실패: ${r.status}`);return r.json();}
-function tableJson(raw){if(!raw)return{headers:[],rows:[],tfoot:[]};try{const t=typeof raw==="string"?JSON.parse(raw):raw,cv=rs=>(rs||[]).map(r=>(r.row||[]).map(c=>cleanText(c?.Text||"")));return{headers:cv(t.headers),rows:cv(t.rows),tfoot:cv(t.tfoot)};}catch{return{headers:[],rows:[],tfoot:[]};}}
-function scoreDetail(raw){if(!raw||raw.code==="200"||!raw.G_ID)return null;const a=tableJson(raw.table2),t=tableJson(raw.table3),h=a.headers[0]||[],ar=a.rows[0]||[],hr=a.rows[1]||[],innings=[];for(let i=0;i<h.length;i++){const inn=parseInt(h[i],10);if(Number.isFinite(inn))innings.push({inning:inn,away:num(ar[i]),home:num(hr[i])});}const total=r=>({runs:num(r?.[0]),hits:num(r?.[1]),errors:num(r?.[2]),walks:num(r?.[3])});return{innings,totals:{away:total(t.rows[0]),home:total(t.rows[1])},crowd:String(raw.CROWD_CN||""),startTime:String(raw.START_TM||""),endTime:String(raw.END_TM||""),useTime:String(raw.USE_TM||"")};}
-function hitters(meta,by,total,max){const n=Math.min(meta.rows.length,by.rows.length,total.rows.length),out=[];for(let i=0;i<n;i++){const m=meta.rows[i]||[],x=total.rows[i]||[];out.push({order:String(m[0]||""),position:String(m[1]||""),name:String(m[2]||""),ab:num(x[0]),hits:num(x[1]),rbi:num(x[2]),runs:num(x[3]),seasonAvg:num(x[4])});}return out;}
-function pitchers(t){return t.rows.map(c=>({name:String(c[0]||""),appearance:String(c[1]||""),decision:String(c[2]||""),innings:String(c[6]||""),pitches:num(c[8]),hitsAllowed:num(c[10]),walksAndHbp:num(c[12]),strikeouts:num(c[13]),runs:num(c[14]),earnedRuns:num(c[15]),seasonEra:num(c[16])}));}
-function boxDetail(raw){if(!raw||raw.code==="200")return null;const hs=Array.isArray(raw.arrHitter)?raw.arrHitter:[],ps=Array.isArray(raw.arrPitcher)?raw.arrPitcher:[],team=(h,p)=>({hitters:hitters(tableJson(h?.table1),tableJson(h?.table2),tableJson(h?.table3),Number(raw.maxInning||9)),pitchers:pitchers(tableJson(p?.table))}),etc=tableJson(raw.tableEtc);return{away:team(hs[0],ps[0]),home:team(hs[1],ps[1]),events:etc.rows.map(r=>({label:String(r[0]||""),value:String(r[1]||"")})).filter(e=>e.label)};}
-function starters(arr){const seen=new Set(),out=[];for(const h of arr||[]){const o=parseInt(h.order,10);if(!Number.isFinite(o)||seen.has(o))continue;seen.add(o);out.push({order:o,position:h.position,name:h.name,seasonAvg:h.seasonAvg});}return out.sort((a,b)=>a.order-b.order).slice(0,9);}
-function previewLineup(raw){if(!raw||raw.code==="200")return null;const flag=raw?.["0"]?.[0]?.LINEUP_CK,hm=raw?.["1"]?.[0],am=raw?.["2"]?.[0];if(flag===undefined||!hm||!am)return null;const parse=v=>tableJson(v).rows.map(c=>({order:parseInt(c[0],10),position:String(c[1]||""),name:String(c[2]||"")})).filter(x=>Number.isFinite(x.order));return{announced:Boolean(flag),home:{teamName:String(hm.T_NM||""),slots:parse(raw?.["3"]?.[0])},away:{teamName:String(am.T_NM||""),slots:parse(raw?.["4"]?.[0])}};}
-async function gameDetail(g){const seasonId=Number(g.gameId.slice(0,4))||Number(todayKST().slice(0,4)),p={leId:1,srId:0,seasonId,gameId:g.gameId},[s,b,l]=await Promise.all([postSchedule("GetScoreBoardScroll",p).catch(()=>null),postSchedule("GetBoxScoreScroll",p).catch(()=>null),postSchedule("GetLineUpAnalysis",p).catch(()=>null)]),scoreboard=scoreDetail(s),boxscore=boxDetail(b);let lineup=previewLineup(l);if(boxscore&&(!lineup||!lineup.announced))lineup={announced:true,away:{slots:starters(boxscore.away.hitters)},home:{slots:starters(boxscore.home.hitters)}};return{scoreboard,boxscore,lineup};}
+  if (!res.ok) {
+    throw new Error(
+      `KBO 요청 실패: ${res.status}`
+    );
+  }
 
-const TEAM_NAMES=["LG","DOOSAN","SAMSUNG","LOTTE","HANWHA","KIA","SSG","KIWOOM","KT","NC"];
-const LOCATION_KO={JAMSIL:"잠실",SAJIK:"사직",SUWON:"수원",GWANGJU:"광주",CHANGWON:"창원",DAEGU:"대구",MUNHAK:"문학",GOCHEOKSKY:"고척",DAEJEON:"대전",POHANG:"포항",ULSAN:"울산"};
-function parseSchedule(html,month){const out=[],rows=html.match(/<tr\b[\s\S]*?<\/tr>/gi)||[];let date="";for(const row of rows){const c=[...row.matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)].map(m=>cleanText(m[1])).filter(Boolean);const dl=c.find(v=>/^\d{2}\.\d{2}\([A-Z]{3}\)$/i.test(v));if(dl){const m=dl.match(/^(\d{2})\.(\d{2})/);date=`${month.slice(0,4)}-${m[1]}-${m[2]}`;}if(!date)continue;const ti=c.findIndex(v=>/^\d{1,2}:\d{2}$/.test(v));if(ti<0)continue;const after=c.slice(ti+1),joined=after.join(" "),found=[];for(const team of TEAM_NAMES){const m=joined.match(new RegExp(`\\b${team}\\b`,"i"));if(m)found.push({team,index:m.index});}found.sort((a,b)=>a.index-b.index);if(found.length<2)continue;const away=found[0].team,home=found[1].team;if(away!=="LOTTE"&&home!=="LOTTE")continue;let location="";for(const code of Object.keys(LOCATION_KO))if(new RegExp(`\\b${code}\\b`,"i").test(joined)){location=LOCATION_KO[code];break;}let status="예정";if(/POSTPONED/i.test(joined))status="연기";else if(/CANCELLED|CANCELED/i.test(joined))status="취소";else if(/SUSPENDED/i.test(joined))status="중단";out.push({date,time:c[ti],away,home,awayScore:null,homeScore:null,location,status});}return out;}
+  return await res.text();
+}
 
-const V2_UI=`
-(function(){
-function summary(g){const sc=g.awayScore!=null&&g.homeScore!=null,a=g.startingPitchers?.away?.name||"미정",h=g.startingPitchers?.home?.name||"미정";return '<button type="button" data-v2game="'+esc(g.gameId||'')+'" style="width:100%;text-align:left;color:inherit;background:transparent;border:1px solid var(--line);border-radius:16px;padding:16px;cursor:pointer"><div class="kboLiveHead"><div class="kboMuted">'+esc(g.date||'')+' · '+esc(g.time||'')+' · '+esc(g.location||'')+'</div><div class="todayStatus">'+esc(g.status||'경기 정보')+'</div></div><div class="todayMatchup"><div class="todayTeam">'+esc(g.away||'')+'</div><div class="todayScoreBig">'+(sc?esc(g.awayScore)+' : '+esc(g.homeScore):'VS')+'</div><div class="todayTeam">'+esc(g.home||'')+'</div></div><div class="kboMuted" style="text-align:center;margin-top:8px">선발투수 · '+esc(a)+' / '+esc(h)+'</div><div style="text-align:center;margin-top:12px;font-weight:800">경기 상세정보 보기 ›</div></button>';}
-function lineup(name,arr){if(!arr?.length)return '<div class="kboBox"><div class="kboTitle">'+esc(name)+'</div><div class="kboMuted">라인업이 아직 발표되지 않았습니다.</div></div>';return '<div class="kboBox"><div class="kboTitle">'+esc(name)+'</div>'+kboTable(['타순','포지션','선수','AVG'],arr.map(x=>[x.order||'',x.position||'',x.name||'',x.seasonAvg!=null?Number(x.seasonAvg).toFixed(3):'']))+'</div>';}
-function pit(name,arr){if(!arr?.length)return'';return '<div class="kboBox"><div class="kboTitle">'+esc(name)+' 투수</div>'+kboTable(['선수','등판','이닝','투구','피안타','4사구','삼진','실점','자책','ERA'],arr.map(p=>[p.name||'',p.appearance||'',p.innings||'',p.pitches??'',p.hitsAllowed??'',p.walksAndHbp??'',p.strikeouts??'',p.runs??'',p.earnedRuns??'',p.seasonEra!=null?Number(p.seasonEra).toFixed(2):'']))+'</div>';}
-function detail(box,s){box.innerHTML='<div class="kboLoading">경기 상세정보 불러오는 중...</div>';kboGet('game',{gameId:s.gameId}).then(j=>{const g=j.game||s,d=j.detail||{},sb=d.scoreboard,b=d.boxscore,l=d.lineup,sc=g.awayScore!=null&&g.homeScore!=null,c=g.count||{},r=g.runners||{},bases=[r.first?'1루':'',r.second?'2루':'',r.third?'3루':''].filter(Boolean).join(' · ')||'주자 없음';let inn='';if(sb?.innings?.length){const hs=['TEAM',...sb.innings.map(x=>String(x.inning)),'R','H','E','B'],a=sb.totals?.away||{},h=sb.totals?.home||{},rows=[[g.away||'',...sb.innings.map(x=>x.away??'-'),a.runs??'-',a.hits??'-',a.errors??'-',a.walks??'-'],[g.home||'',...sb.innings.map(x=>x.home??'-'),h.runs??'-',h.hits??'-',h.errors??'-',h.walks??'-']];inn='<div class="kboSection"><div class="kboTitle">이닝별 득점</div>'+kboTable(hs,rows)+'</div>';}box.innerHTML='<button class="kboRefresh" data-v2back="1" style="margin-bottom:12px">‹ 오늘 경기로</button><div class="kboLiveHead"><div class="kboMuted">'+esc(g.date||'')+' · '+esc(g.time||'')+' · '+esc(g.location||'')+'</div><div class="todayStatus">'+esc(g.status||'')+'</div></div><div class="todayMatchup"><div class="todayTeam">'+esc(g.away||'')+'</div><div class="todayScoreBig">'+(sc?esc(g.awayScore)+' : '+esc(g.homeScore):'VS')+'</div><div class="todayTeam">'+esc(g.home||'')+'</div></div><div class="kboSection"><div class="kboTitle">현재 경기 상황</div><div class="kboGrid"><div class="kboBox"><div class="kboMuted">현재 투수</div><b>'+esc(g.currentPitcher?.name||'-')+'</b></div><div class="kboBox"><div class="kboMuted">현재 타자</div><b>'+esc(g.currentBatter?.name||'-')+'</b></div><div class="kboBox"><div class="kboMuted">볼 · 스트라이크 · 아웃</div><b>'+esc(c.ball??'-')+' · '+esc(c.strike??'-')+' · '+esc(c.out??'-')+'</b></div><div class="kboBox"><div class="kboMuted">주자</div><b>'+esc(bases)+'</b></div></div></div><div class="kboSection"><div class="kboTitle">선발투수</div><div class="kboGrid"><div class="kboBox"><div class="kboMuted">'+esc(g.away||'')+'</div><b>'+esc(g.startingPitchers?.away?.name||'미정')+'</b></div><div class="kboBox"><div class="kboMuted">'+esc(g.home||'')+'</div><b>'+esc(g.startingPitchers?.home?.name||'미정')+'</b></div></div></div>'+inn+'<div class="kboSection"><div class="kboTitle">선발 라인업</div>'+lineup(g.away||'원정',l?.away?.slots||[])+'<div style="height:10px"></div>'+lineup(g.home||'홈',l?.home?.slots||[])+'</div>'+(b?'<div class="kboSection"><div class="kboTitle">투수 기록</div>'+pit(g.away||'원정',b.away?.pitchers)+'<div style="height:10px"></div>'+pit(g.home||'홈',b.home?.pitchers)+'</div>':'');box.querySelector('[data-v2back]').onclick=()=>loadToday(box);}).catch(e=>{box.innerHTML='<div class="kboError">경기 상세정보를 불러오지 못했습니다.<br><br>'+esc(e.message)+'</div><button class="kboRefresh" data-v2back="1" style="margin-top:12px">오늘 경기로</button>';box.querySelector('[data-v2back]').onclick=()=>loadToday(box);});}
-window.loadToday=function(box){box.innerHTML='<div class="kboLoading">오늘 경기 불러오는 중...</div>';kboGet('score').then(j=>{const games=j.games||[];if(!games.length){box.innerHTML='<div class="kboMuted">오늘 롯데 경기가 없습니다.</div>';return;}box.innerHTML='<div class="kboTitle">오늘 롯데 경기</div><div class="kboMuted" style="margin-bottom:12px">경기를 누르면 현재 투수, 득점, 선발투수, 선발 라인업과 투수 기록을 확인할 수 있습니다.</div>'+games.map(summary).join('<div style="height:10px"></div>');box.querySelectorAll('[data-v2game]').forEach(btn=>btn.onclick=()=>{const g=games.find(x=>String(x.gameId||'')===String(btn.dataset.v2game||''));if(g)detail(box,g);});}).catch(e=>box.innerHTML='<div class="kboError">오늘 경기 데이터를 불러오지 못했습니다.<br><br>'+esc(e.message)+'</div>');};
-})();`;
+function todayKST() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(new Date());
+}
 
-async function assetResponse(request,env){const a=await env.ASSETS.fetch(request),type=a.headers.get("content-type")||"";if(!type.includes("text/html"))return a;const html=await a.text(),body=html.includes("data-yungang-v2-ui")?html:html.replace(/<\/body>/i,`<script data-yungang-v2-ui>${V2_UI}<\/script></body>`),h=new Headers(a.headers);h.set("cache-control","no-store, no-cache, must-revalidate");h.delete("content-length");return new Response(body,{status:a.status,headers:h});}
+function currentMonthKST() {
+  return todayKST().slice(0, 7);
+}
 
-export default{async fetch(request,env){const url=new URL(request.url);if(url.pathname!=="/api/kbo")return assetResponse(request,env);const headers={"content-type":"application/json; charset=utf-8","cache-control":"no-store, no-cache, must-revalidate","access-control-allow-origin":"*"};try{const q=Object.fromEntries(url.searchParams.entries()),type=q.type||"standings";let payload={updatedAt:new Date().toISOString()};
-if(type==="score"){const date=todayKST();let games=[];try{games=(await gameList(date)).map(x=>publicGame(x,date)).filter(isLotte);}catch{const html=await get(`${ENG}/Schedule/DailySchedule.aspx?searchDate=${date.slice(0,7)}`);games=parseSchedule(html,date.slice(0,7)).filter(g=>g.date===date);}payload={...payload,date,games};}
-else if(type==="game"){const gameId=String(q.gameId||"").trim();if(!gameId)throw new Error("gameId가 없습니다.");const date=normDate(gameId.slice(0,8))||todayKST(),raw=(await gameList(date)).find(x=>String(x.G_ID||"")===gameId);if(!raw)throw new Error("KBO 게임센터에서 해당 경기를 찾지 못했습니다.");const game=publicGame(raw,date);payload={...payload,date,game,detail:await gameDetail(game)};}
-else if(type==="schedule"){const current=currentMonthKST(),months=[shiftMonth(current,-1),current,shiftMonth(current,1)],htmls=await Promise.all(months.map(month=>get(`${ENG}/Schedule/DailySchedule.aspx?searchDate=${month}`).then(html=>({month,html})))),all=htmls.flatMap(x=>parseSchedule(x.html,x.month)).filter((g,i,a)=>a.findIndex(x=>x.date===g.date&&x.time===g.time&&x.away===g.away&&x.home===g.home)===i).sort((a,b)=>`${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`)),today=todayKST(),recent=await recentLotte(today,3),upcoming=all.filter(g=>g.status==="예정"&&g.date>=today).slice(0,3);payload={...payload,month:current,recent,upcoming,games:[...recent].reverse().concat(upcoming)};}
-else if(type==="standings"){const ts=tables(await get(`${BASE}/Record/TeamRank/TeamRankDaily.aspx`)),table=ts.find(t=>{const h=t.headers.join(" ");return h.includes("순위")&&(h.includes("팀명")||h.includes("팀"));})||null;payload={...payload,table};}
-else if(type==="roster"){const groups=lotteRoster(await get(`${BASE}/Player/RegisterAll.aspx`));payload={...payload,team:"롯데",groups,counts:{투수:groups.투수.length,포수:groups.포수.length,내야수:groups.내야수.length,외야수:groups.외야수.length}};}
-else if(type==="player"){const name=String(q.name||"").trim(),number=String(q.number||"").trim(),position=String(q.position||"").trim();if(!name)throw new Error("선수 이름이 없습니다.");const found=await findLottePlayer(name,number,position),html=await get(BASE+found.path);payload={...payload,player:found,profile:parseProfile(html),tables:seasonTables(html)};}
-else throw new Error("지원하지 않는 요청입니다.");return new Response(JSON.stringify(payload),{status:200,headers});}catch(e){return new Response(JSON.stringify({error:e?.message||String(e)}),{status:500,headers});}}};
+function tables(html) {
+  const result = [];
+
+  const tableMatches =
+    html.match(
+      /<table\b[\s\S]*?<\/table>/gi
+    ) || [];
+
+  for (const tableHtml of tableMatches) {
+    const rows =
+      tableHtml.match(
+        /<tr\b[\s\S]*?<\/tr>/gi
+      ) || [];
+
+    let headers = [];
+    const body = [];
+
+    for (const row of rows) {
+      const ths = [
+        ...row.matchAll(
+          /<th\b[^>]*>([\s\S]*?)<\/th>/gi
+        )
+      ].map(m => cleanText(m[1]));
+
+      const tds = [
+        ...row.matchAll(
+          /<td\b[^>]*>([\s\S]*?)<\/td>/gi
+        )
+      ].map(m => cleanText(m[1]));
+
+      if (
+        ths.length &&
+        !headers.length
+      ) {
+        headers = ths;
+      }
+
+      if (tds.length) {
+        body.push(tds);
+      }
+    }
+
+    if (
+      headers.length ||
+      body.length
+    ) {
+      result.push({
+        headers,
+        rows: body
+      });
+    }
+  }
+
+  return result;
+}
+
+function normalizePlayerPath(
+  href = ""
+) {
+  href = decodeHtml(href).trim();
+
+  if (!href) {
+    return "";
+  }
+
+  if (/^https?:\/\//i.test(href)) {
+    try {
+      const u = new URL(href);
+
+      if (
+        !/koreabaseball\.com$/i.test(
+          u.hostname
+        )
+      ) {
+        return "";
+      }
+
+      return u.pathname + u.search;
+    } catch (_) {
+      return "";
+    }
+  }
+
+  return href.startsWith("/")
+    ? href
+    : "/" +
+        href.replace(
+          /^\.?\//,
+          ""
+        );
+}
+
+function extractPlayers(
+  cellHtml
+) {
+  const players = [];
+
+  const anchors = [
+    ...cellHtml.matchAll(
+      /<a\b([^>]*)>([\s\S]*?)<\/a>/gi
+    )
+  ];
+
+  for (const m of anchors) {
+    const hrefMatch =
+      m[1].match(
+        /href\s*=\s*["']([^"']+)["']/i
+      );
+
+    const label =
+      cleanText(m[2]);
+
+    const pm =
+      label.match(
+        /^(.+?)\s*\(\s*(\d{1,3})\s*\)$/
+      );
+
+    if (!pm) {
+      continue;
+    }
+
+    players.push({
+      name:
+        pm[1].trim(),
+
+      number:
+        pm[2],
+
+      path:
+        normalizePlayerPath(
+          hrefMatch
+            ? hrefMatch[1]
+            : ""
+        )
+    });
+  }
+
+  if (!players.length) {
+    const raw =
+      cleanText(cellHtml);
+
+    for (
+      const m of raw.matchAll(
+        /([가-힣A-Za-zÀ-ÿ·.\-]+)\s*\(\s*(\d{1,3})\s*\)/g
+      )
+    ) {
+      players.push({
+        name:
+          m[1].trim(),
+
+        number:
+          m[2],
+
+        path: ""
+      });
+    }
+  }
+
+  const seen =
+    new Set();
+
+  return players.filter(
+    p => {
+      const key =
+        `${p.name}|${p.number}`;
+
+      if (
+        seen.has(key)
+      ) {
+        return false;
+      }
+
+      seen.add(key);
+
+      return true;
+    }
+  );
+}
+
+function lotteRoster(html) {
+  const tablesHtml =
+    html.match(
+      /<table\b[\s\S]*?<\/table>/gi
+    ) || [];
+
+  for (
+    const tableHtml
+    of tablesHtml
+  ) {
+    if (
+      !cleanText(
+        tableHtml
+      ).includes("롯데")
+    ) {
+      continue;
+    }
+
+    const rows =
+      tableHtml.match(
+        /<tr\b[\s\S]*?<\/tr>/gi
+      ) || [];
+
+    for (
+      const row of rows
+    ) {
+      const cells = [
+        ...row.matchAll(
+          /<(th|td)\b[^>]*>([\s\S]*?)<\/\1>/gi
+        )
+      ].map(m => m[2]);
+
+      if (
+        cells.length < 7
+      ) {
+        continue;
+      }
+
+      if (
+        !cleanText(
+          cells[0]
+        ).includes("롯데")
+      ) {
+        continue;
+      }
+
+      return {
+        투수:
+          extractPlayers(
+            cells[3]
+          ),
+
+        포수:
+          extractPlayers(
+            cells[4]
+          ),
+
+        내야수:
+          extractPlayers(
+            cells[5]
+          ),
+
+        외야수:
+          extractPlayers(
+            cells[6]
+          )
+      };
+    }
+  }
+
+  throw new Error(
+    "KBO 페이지에서 롯데 선수단 행을 찾지 못했습니다."
+  );
+}
+
+function parseSearchResults(
+  html
+) {
+  const out = [];
+
+  const rows =
+    html.match(
+      /<tr\b[\s\S]*?<\/tr>/gi
+    ) || [];
+
+  for (const row of rows) {
+    const rawCells = [
+      ...row.matchAll(
+        /<td\b[^>]*>([\s\S]*?)<\/td>/gi
+      )
+    ].map(m => m[1]);
+
+    if (
+      rawCells.length < 4
+    ) {
+      continue;
+    }
+
+    const number =
+      cleanText(
+        rawCells[0]
+      ).replace(
+        /^#$/,
+        ""
+      );
+
+    const name =
+      cleanText(
+        rawCells[1]
+      );
+
+    const team =
+      cleanText(
+        rawCells[2]
+      );
+
+    const position =
+      cleanText(
+        rawCells[3]
+      );
+
+    const hrefMatch =
+      rawCells[1].match(
+        /href\s*=\s*["']([^"']+)["']/i
+      );
+
+    const path =
+      normalizePlayerPath(
+        hrefMatch
+          ? hrefMatch[1]
+          : ""
+      );
+
+    if (
+      !name ||
+      !team ||
+      !position ||
+      !path
+    ) {
+      continue;
+    }
+
+    out.push({
+      number,
+      name,
+      team,
+      position,
+      path
+    });
+  }
+
+  return out;
+}
+
+async function findLottePlayer(
+  name,
+  number = "",
+  position = ""
+) {
+  const url =
+    `${BASE}/Player/Search.aspx?searchWord=` +
+    encodeURIComponent(name);
+
+  const html =
+    await get(url);
+
+  const results =
+    parseSearchResults(
+      html
+    );
+
+  const exact =
+    results.filter(
+      p =>
+        p.name === name &&
+        p.team.includes(
+          "롯데"
+        )
+    );
+
+  if (!exact.length) {
+    throw new Error(
+      `${name} 선수의 롯데 검색 결과를 찾지 못했습니다.`
+    );
+  }
+
+  let picked =
+    exact.find(
+      p =>
+        number &&
+        p.number ===
+          String(number) &&
+        (
+          !position ||
+          p.position.includes(
+            position
+          )
+        )
+    );
+
+  if (!picked) {
+    picked =
+      exact.find(
+        p =>
+          number &&
+          p.number ===
+            String(number)
+      );
+  }
+
+  if (!picked) {
+    picked =
+      exact.find(
+        p =>
+          position &&
+          p.position.includes(
+            position
+          )
+      );
+  }
+
+  if (!picked) {
+    picked =
+      exact[0];
+  }
+
+  return picked;
+}
+
+function parseProfile(
+  html
+) {
+  const all =
+    cleanText(html);
+
+  function grab(label) {
+    const re =
+      new RegExp(
+        `${label}\\s*:\\s*([^·|]+?)(?=\\s+(?:선수명|등번호|생년월일|포지션|신장/체중|경력|입단 계약금|연봉|지명순위|입단년도)\\s*:|$)`
+      );
+
+    const m =
+      all.match(re);
+
+    return m
+      ? m[1].trim()
+      : "";
+  }
+
+  return {
+    name:
+      grab("선수명"),
+
+    number:
+      grab("등번호")
+        .replace(
+          /^No\.?\s*/i,
+          ""
+        ),
+
+    birth:
+      grab("생년월일"),
+
+    position:
+      grab("포지션"),
+
+    size:
+      grab("신장/체중"),
+
+    career:
+      grab("경력"),
+
+    salary:
+      grab("연봉")
+  };
+}
+
+function seasonTables(
+  html
+) {
+  const ts =
+    tables(html);
+
+  return ts
+    .filter(t => {
+      if (
+        !t.rows.length
+      ) {
+        return false;
+      }
+
+      const joined =
+        `${t.headers.join(" ")} ` +
+        `${t.rows.flat().join(" ")}`;
+
+      return /ERA|AVG|타율|안타|홈런|타점|득점|도루|W|L|SV|HLD|IP|SO|RBI|HR|OPS|OBP|SLG/i.test(
+        joined
+      );
+    })
+    .slice(0, 6);
+}
+
+const TEAM_NAMES = [
+  "LG",
+  "DOOSAN",
+  "SAMSUNG",
+  "LOTTE",
+  "HANWHA",
+  "KIA",
+  "SSG",
+  "KIWOOM",
+  "KT",
+  "NC"
+];
+
+const LOCATION_KO = {
+  JAMSIL: "잠실",
+  SAJIK: "사직",
+  SUWON: "수원",
+  GWANGJU: "광주",
+  CHANGWON: "창원",
+  DAEGU: "대구",
+  MUNHAK: "문학",
+  GOCHEOKSKY: "고척",
+  DAEJEON: "대전",
+  POHANG: "포항",
+  ULSAN: "울산"
+};
+
+function shiftMonth(
+  month,
+  delta
+) {
+  const [y, m] =
+    month
+      .split("-")
+      .map(Number);
+
+  const d =
+    new Date(
+      Date.UTC(
+        y,
+        m - 1 + delta,
+        1
+      )
+    );
+
+  return (
+    `${d.getUTCFullYear()}-` +
+    `${String(
+      d.getUTCMonth() + 1
+    ).padStart(2, "0")}`
+  );
+}
+
+function scheduleDateFromLabel(
+  label,
+  month
+) {  label,
+  month
+) {
+  const m =
+    String(
+      label || ""
+    ).match(
+      /^(\d{2})\.(\d{2})\([A-Z]{3}\)$/i
+    );
+
+  if (!m) {
+    return "";
+  }
+
+  return (
+    `${month.slice(0, 4)}-` +
+    `${m[1]}-${m[2]}`
+  );
+}
+
+function parseScheduleGames(
+  html,
+  month
+) {
+  const out = [];
+
+  const rows =
+    html.match(
+      /<tr\b[\s\S]*?<\/tr>/gi
+    ) || [];
+
+  let currentDate = "";
+
+  const today =
+    todayKST();
+
+  for (const row of rows) {
+    const cells = [
+      ...row.matchAll(
+        /<td\b[^>]*>([\s\S]*?)<\/td>/gi
+      )
+    ]
+      .map(m => cleanText(m[1]))
+      .filter(Boolean);
+
+    if (!cells.length) {
+      continue;
+    }
+
+    const dateLabel =
+      cells.find(v =>
+        /^\d{2}\.\d{2}\([A-Z]{3}\)$/i.test(v)
+      );
+
+    if (dateLabel) {
+      currentDate =
+        scheduleDateFromLabel(
+          dateLabel,
+          month
+        );
+    }
+
+    if (!currentDate) {
+      continue;
+    }
+
+    const timeIndex =
+      cells.findIndex(v =>
+        /^\d{1,2}:\d{2}$/.test(v)
+      );
+
+    if (timeIndex < 0) {
+      continue;
+    }
+
+    const after =
+      cells.slice(timeIndex + 1);
+
+    const teamPositions = [];
+
+    after.forEach((v, i) => {
+      const upper =
+        v.toUpperCase();
+
+      if (
+        TEAM_NAMES.includes(
+          upper
+        )
+      ) {
+        teamPositions.push(i);
+      }
+    });
+
+    if (teamPositions.length < 2) {
+      const joined =
+        after.join(" ");
+
+      const foundTeams = [];
+
+      for (const team of TEAM_NAMES) {
+        const re =
+          new RegExp(
+            `\\b${team}\\b`,
+            "i"
+          );
+
+        const match =
+          joined.match(re);
+
+        if (match) {
+          foundTeams.push({
+            team,
+            index: match.index
+          });
+        }
+      }
+
+      foundTeams.sort(
+        (a, b) =>
+          a.index - b.index
+      );
+
+      if (
+        foundTeams.length < 2
+      ) {
+        continue;
+      }
+
+      const away =
+        foundTeams[0].team;
+
+      const home =
+        foundTeams[1].team;
+
+      if (
+        away !== "LOTTE" &&
+        home !== "LOTTE"
+      ) {
+        continue;
+      }
+
+      const scoreMatch =
+        joined.match(
+          /\b(\d{1,2})\s*[:\-]\s*(\d{1,2})\b/
+        );
+
+      const awayScore =
+        scoreMatch
+          ? Number(scoreMatch[1])
+          : null;
+
+      const homeScore =
+        scoreMatch
+          ? Number(scoreMatch[2])
+          : null;
+
+      let location = "";
+      let locationCode = "";
+
+      for (
+        const code of
+        Object.keys(LOCATION_KO)
+      ) {
+        if (
+          new RegExp(
+            `\\b${code}\\b`,
+            "i"
+          ).test(joined)
+        ) {
+          locationCode = code;
+          location =
+            LOCATION_KO[code];
+          break;
+        }
+      }
+
+      let status = "예정";
+
+      if (
+        /POSTPONED/i.test(joined)
+      ) {
+        status = "연기";
+      } else if (
+        /CANCELLED|CANCELED/i.test(
+          joined
+        )
+      ) {
+        status = "취소";
+      } else if (
+        /SUSPENDED/i.test(joined)
+      ) {
+        status = "중단";
+      } else if (
+        currentDate < today
+      ) {
+        status = "종료";
+      } else if (
+        awayScore !== null &&
+        homeScore !== null
+      ) {
+        status = "종료";
+      }
+
+      out.push({
+        date: currentDate,
+        time: cells[timeIndex],
+        away,
+        home,
+        awayScore,
+        homeScore,
+        location,
+        locationCode,
+        status
+      });
+
+      continue;
+    }
+
+    const awayIndex =
+      teamPositions[0];
+
+    const homeIndex =
+      teamPositions[1];
+
+    const away =
+      after[
+        awayIndex
+      ].toUpperCase();
+
+    const home =
+      after[
+        homeIndex
+      ].toUpperCase();
+
+    if (
+      away !== "LOTTE" &&
+      home !== "LOTTE"
+    ) {
+      continue;
+    }
+
+    const between =
+      after.slice(
+        awayIndex + 1,
+        homeIndex
+      );
+
+    const betweenText =
+      between.join(" ");
+
+    let awayScore = null;
+    let homeScore = null;
+
+    const scoreMatch =
+      betweenText.match(
+        /(\d{1,2})\s*[:\-]\s*(\d{1,2})/
+      );
+
+    if (scoreMatch) {
+      awayScore =
+        Number(scoreMatch[1]);
+
+      homeScore =
+        Number(scoreMatch[2]);
+    }
+
+    if (
+      awayScore === null ||
+      homeScore === null
+    ) {
+      const nums =
+        between
+          .filter(v =>
+            /^\d{1,2}$/.test(v)
+          )
+          .map(Number);
+
+      if (nums.length >= 2) {
+        awayScore = nums[0];
+        homeScore = nums[1];
+      }
+    }
+
+    const tail =
+      after.slice(
+        homeIndex + 1
+      );
+
+    const tailText =
+      tail.join(" ");
+
+    const locationCode =
+      tail.find(v =>
+        LOCATION_KO[
+          v.toUpperCase()
+        ]
+      ) || "";
+
+    const rawStatus =
+      tail.find(v =>
+        /POSTPONED|CANCELLED|CANCELED|SUSPENDED/i.test(v)
+      ) || "";
+
+    let status = "예정";
+
+    if (
+      /POSTPONED/i.test(
+        rawStatus
+      )
+    ) {
+      status = "연기";
+    } else if (
+      /CANCELLED|CANCELED/i.test(
+        rawStatus
+      )
+    ) {
+      status = "취소";
+    } else if (
+      /SUSPENDED/i.test(
+        rawStatus
+      )
+    ) {
+      status = "중단";
+    } else if (
+      currentDate < today
+    ) {
+      status = "종료";
+    } else if (
+      awayScore !== null &&
+      homeScore !== null
+    ) {
+      status = "종료";
+    }
+
+    out.push({
+      date: currentDate,
+      time: cells[timeIndex],
+      away,
+      home,
+      awayScore,
+      homeScore,
+
+      location:
+        locationCode
+          ? LOCATION_KO[
+              locationCode.toUpperCase()
+            ]
+          : "",
+
+      locationCode,
+      status,
+      raw: tailText
+    });
+  }
+
+  return out;
+}
+
+function scoreboardGames(html) {
+  const games = [];
+
+  const matches = [
+    ...html.matchAll(
+      /<table\b[\s\S]*?<\/table>/gi
+    )
+  ];
+
+  for (const m of matches) {
+    const parsed =
+      tables(m[0])[0];
+
+    if (
+      !parsed ||
+      parsed.rows.length < 2
+    ) {
+      continue;
+    }
+
+    const headers =
+      parsed.headers.map(h =>
+        h.toUpperCase()
+      );
+
+    const teamIndex =
+      headers.findIndex(
+        h => h === "TEAM"
+      );
+
+    const rIndex =
+      headers.findIndex(
+        h => h === "R"
+      );
+
+    if (
+      teamIndex < 0 ||
+      rIndex < 0
+    ) {
+      continue;
+    }
+
+    const rows =
+      parsed.rows.filter(
+        r => r.length > rIndex
+      );
+
+    if (rows.length < 2) {
+      continue;
+    }
+
+    const away =
+      String(
+        rows[0][teamIndex] || ""
+      ).toUpperCase();
+
+    const home =
+      String(
+        rows[1][teamIndex] || ""
+      ).toUpperCase();
+
+    if (
+      away !== "LOTTE" &&
+      home !== "LOTTE"
+    ) {
+      continue;
+    }
+
+    const before =
+      cleanText(
+        html.slice(
+          Math.max(
+            0,
+            m.index - 1400
+          ),
+          m.index
+        )
+      );
+
+    const timeMatches = [
+      ...before.matchAll(
+        /\b\d{1,2}:\d{2}\b/g
+      )
+    ];
+
+    const time =
+      timeMatches.length
+        ? timeMatches[
+            timeMatches.length - 1
+          ][0]
+        : "";
+
+    let location = "";
+    let locationCode = "";
+
+    for (
+      const code of
+      Object.keys(LOCATION_KO)
+    ) {
+      if (
+        new RegExp(
+          `\\b${code}\\b`,
+          "i"
+        ).test(before)
+      ) {
+        locationCode = code;
+        location =
+          LOCATION_KO[code];
+      }
+    }
+
+    const n = v =>
+      /^-?\d+$/.test(
+        String(v || "")
+      )
+        ? Number(v)
+        : null;
+
+    const awayScore =
+      n(rows[0][rIndex]);
+
+    const homeScore =
+      n(rows[1][rIndex]);
+
+    const total =
+      (row, key) => {
+        const i =
+          headers.findIndex(
+            h => h === key
+          );
+
+        return i >= 0
+          ? row[i]
+          : "";
+      };
+
+    games.push({
+      away,
+      home,
+      awayScore,
+      homeScore,
+      time,
+      location,
+      locationCode,
+
+      status:
+        /\bFINAL\b/i.test(before)
+          ? "종료"
+          : "진행 중",
+
+      totals: {
+        away: {
+          R: total(
+            rows[0],
+            "R"
+          ),
+          H: total(
+            rows[0],
+            "H"
+          ),
+          E: total(
+            rows[0],
+            "E"
+          ),
+          B: total(
+            rows[0],
+            "B"
+          )
+        },
+
+        home: {
+          R: total(
+            rows[1],
+            "R"
+          ),
+          H: total(
+            rows[1],
+            "H"
+          ),
+          E: total(
+            rows[1],
+            "E"
+          ),
+          B: total(
+            rows[1],
+            "B"
+          )
+        }
+      },
+
+      innings: {
+        headers:
+          parsed.headers,
+
+        rows:
+          rows.slice(0, 2)
+      }
+    });
+  }
+
+  return games;
+}
+
+const GAME_LIST_API =
+  `${BASE}/ws/Main.asmx/GetKboGameList`;
+
+const SCHEDULE_API =
+  `${BASE}/ws/Schedule.asmx`;
+
+const UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+  "AppleWebKit/537.36 (KHTML, like Gecko) " +
+  "Chrome/130.0 Safari/537.36";
+
+function compactDate(v = "") {
+  return String(v)
+    .replace(/\D/g, "")
+    .slice(0, 8);
+}
+
+function normDate(v = "") {
+  const d =
+    compactDate(v);
+
+  return d.length === 8
+    ? `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`
+    : "";
+}
+
+function shiftDate(
+  date,
+  delta
+) {
+  const [y, m, d] =
+    date
+      .split("-")
+      .map(Number);
+
+  const x =
+    new Date(
+      Date.UTC(
+        y,
+        m - 1,
+        d + delta
+      )
+    );
+
+  return (
+    `${x.getUTCFullYear()}-` +
+    `${String(
+      x.getUTCMonth() + 1
+    ).padStart(2, "0")}-` +
+    `${String(
+      x.getUTCDate()
+    ).padStart(2, "0")}`
+  );
+}
+
+function nnum(v) {
+  if (
+    v === null ||
+    v === undefined ||
+    v === "" ||
+    v === "-"
+  ) {
+    return null;
+  }
+
+  const n =
+    Number(
+      String(v)
+        .replace(/,/g, "")
+    );
+
+  return Number.isFinite(n)
+    ? n
+    : null;
+}
+
+function person(
+  id,
+  name
+) {
+  name =
+    String(
+      name || ""
+    ).trim();
+
+  return name
+    ? {
+        id: id || null,
+        name
+      }
+    : null;
+}
+
+function teamName(
+  name = "",
+  id = ""
+) {
+  const x =
+    String(
+      name || id || ""
+    )
+      .trim()
+      .toUpperCase();
+
+  const map = {
+    "롯데": "LOTTE",
+    LT: "LOTTE",
+    LOTTE: "LOTTE",
+
+    "삼성": "SAMSUNG",
+    SS: "SAMSUNG",
+    SAMSUNG: "SAMSUNG",
+
+    "두산": "DOOSAN",
+    OB: "DOOSAN",
+    DOOSAN: "DOOSAN",
+
+    "한화": "HANWHA",
+    HH: "HANWHA",
+    HANWHA: "HANWHA",
+
+    "키움": "KIWOOM",
+    WO: "KIWOOM",
+    KIWOOM: "KIWOOM",
+
+    LG: "LG",
+
+    KIA: "KIA",
+    HT: "KIA",
+
+    SSG: "SSG",
+    SK: "SSG",
+
+    KT: "KT",
+    NC: "NC"
+  };
+
+  return map[x] || x;
+}
+
+async function gameList(
+  date
+) {
+  const r =
+    await fetch(
+      GAME_LIST_API,
+      {
+        method: "POST",
+
+        headers: {
+          "content-type":
+            "application/json; charset=UTF-8",
+
+          "user-agent":
+            UA,
+
+          referer:
+            `${BASE}/Schedule/GameCenter/Main.aspx`
+        },
+
+        body:
+          JSON.stringify({
+            leId: "1",
+            srId: "0",
+            date:
+              compactDate(date)
+          })
+      }
+    );
+
+  if (!r.ok) {
+    throw new Error(
+      `KBO 게임센터 요청 실패: ${r.status}`
+    );
+  }
+
+  const text =
+    await r.text();
+
+  const cut =
+    text.search(
+      /<!DOCTYPE|<html/i
+    );
+
+  const clean =
+    (
+      cut >= 0
+        ? text.slice(0, cut)
+        : text
+    ).trim();
+
+  const j =
+    JSON.parse(
+      clean || "{}"
+    );
+
+  return Array.isArray(
+    j.game
+  )
+    ? j.game
+    : [];
+}
+
+function publicGame(
+  x,
+  fallback = ""
+) {
+  const date =
+    normDate(x.G_DT) ||
+    fallback;
+
+  const away =
+    teamName(
+      x.AWAY_NM,
+      x.AWAY_ID
+    );
+
+  const home =
+    teamName(
+      x.HOME_NM,
+      x.HOME_ID
+    );
+
+  const cancel =
+    String(
+      x.CANCEL_SC_NM || ""
+    ).trim();
+
+  let status =
+    "경기 전";
+
+  const inn =
+    nnum(
+      x.GAME_INN_NO
+    );
+
+  if (cancel) {
+    status =
+      /취소|CANCEL/i.test(
+        cancel
+      )
+        ? "취소"
+        : cancel;
+  } else if (
+    inn !== null &&
+    inn > 0
+  ) {
+    status =
+      `${inn}회` +
+      `${String(
+        x.GAME_TB_SC_NM || ""
+      ).trim()}`;
+  } else if (
+    date &&
+    date < todayKST()
+  ) {
+    status = "종료";
+  }
+
+  return {
+    gameId:
+      String(
+        x.G_ID || ""
+      ),
+
+    date,
+
+    time:
+      String(
+        x.G_TM || ""
+      ),
+
+    location:
+      String(
+        x.S_NM || ""
+      ),
+
+    away,
+    home,
+
+    awayScore:
+      nnum(
+        x.T_SCORE_CN
+      ),
+
+    homeScore:
+      nnum(
+        x.B_SCORE_CN
+      ),
+
+    status,
+    inning: inn,
+
+    topBottom:
+      String(
+        x.GAME_TB_SC_NM || ""
+      ),
+
+    count: {
+      ball:
+        nnum(x.BALL_CN),
+
+      strike:
+        nnum(
+          x.STRIKE_CN
+        ),
+
+      out:
+        nnum(x.OUT_CN)
+    },
+
+    runners: {
+      first:
+        nnum(
+          x.B1_BAT_ORDER_NO
+        ) !== null,
+
+      second:
+        nnum(
+          x.B2_BAT_ORDER_NO
+        ) !== null,
+
+      third:
+        nnum(
+          x.B3_BAT_ORDER_NO
+        ) !== null
+    },
+
+    currentBatter:
+      person(
+        x.T_P_ID,
+        x.T_P_NM
+      ),
+
+    currentPitcher:
+      person(
+        x.B_P_ID,
+        x.B_P_NM
+      ),
+
+    startingPitchers: {
+      away:
+        person(
+          x.T_PIT_P_ID,
+          x.T_PIT_P_NM
+        ),
+
+      home:
+        person(
+          x.B_PIT_P_ID,
+          x.B_PIT_P_NM
+        )
+    }
+  };
+}
+
+function isLotte(g) {
+  return (
+    g &&
+    (
+      g.away === "LOTTE" ||
+      g.home === "LOTTE"
+    )
+  );
+}
+
+async function recentLotteFinalGames(
+  today,
+  wanted = 3
+) {
+  const found = [];
+  const seen =
+    new Set();
+
+  for (
+    let start = 1;
+    start <= 42 &&
+    found.length < wanted;
+    start += 7
+  ) {
+    const dates =
+      Array.from(
+        { length: 7 },
+        (_, i) =>
+          shiftDate(
+            today,
+            -(start + i)
+          )
+      );
+
+    const batch =
+      await Promise.all(
+        dates.map(
+          date =>
+            gameList(date)
+              .then(raw => ({
+                date,
+                raw
+              }))
+              .catch(() => ({
+                date,
+                raw: []
+              }))
+        )
+      );
+
+    for (
+      const {
+        date,
+        raw
+      } of batch
+    ) {
+      for (
+        const x of raw
+      ) {
+        const g =
+          publicGame(
+            x,
+            date
+          );
+
+        if (
+          !isLotte(g) ||
+          String(
+            x.CANCEL_SC_NM ||
+            ""
+          ).trim() ||
+          g.awayScore ===
+            null ||
+          g.homeScore ===
+            null
+        ) {
+          continue;
+        }
+
+        const key =
+          g.gameId ||
+          `${date}|${g.away}|${g.home}`;
+
+        if (
+          seen.has(key)
+        ) {
+          continue;
+        }
+
+        seen.add(key);
+
+        g.status =
+          "종료";
+
+        found.push(g);
+      }
+    }
+
+    found.sort(
+      (a, b) =>
+        gameSortKey(b)
+          .localeCompare(
+            gameSortKey(a)
+          )
+    );
+  }
+
+  return found.slice(
+    0,
+    wanted
+  );
+}
+
+async function postSchedule(
+  method,
+  params
+) {
+  const body =
+    new URLSearchParams();
+
+  for (
+    const [k, v]
+    of Object.entries(
+      params
+    )
+  ) {
+    body.set(
+      k,
+      String(v)
+    );
+  }
+
+  const r =
+    await fetch(
+      `${SCHEDULE_API}/${method}`,
+      {
+        method: "POST",
+
+        headers: {
+          "content-type":
+            "application/x-www-form-urlencoded; charset=UTF-8",
+
+          "x-requested-with":
+            "XMLHttpRequest",
+
+          "user-agent":
+            UA,
+
+          referer:
+            `${BASE}/Schedule/GameCenter/Main.aspx`
+        },
+
+        body:
+          body.toString()
+      }
+    );
+
+  if (!r.ok) {
+    throw new Error(
+      `${method} 요청 실패: ${r.status}`
+    );
+  }
+
+  return r.json();
+}
+
+function tableJson(raw) {
+  if (!raw) {
+    return {
+      headers: [],
+      rows: [],
+      tfoot: []
+    };
+  }
+
+  try {
+    const t =
+      typeof raw === "string"
+        ? JSON.parse(raw)
+        : raw;
+
+    const cv =
+      rs =>
+        (rs || []).map(
+          r =>
+            (r.row || []).map(
+              c =>
+                cleanText(
+                  c &&
+                  c.Text ||
+                  ""
+                )
+            )
+        );
+
+    return {
+      headers:
+        cv(t.headers),
+
+      rows:
+        cv(t.rows),
+
+      tfoot:
+        cv(t.tfoot)
+    };
+  } catch (_) {
+    return {
+      headers: [],
+      rows: [],
+      tfoot: []
+    };
+  }
+}
+
+function scoreDetail(raw) {
+  if (
+    !raw ||
+    raw.code === "200" ||
+    !raw.G_ID
+  ) {
+    return null;
+  }
+
+  const a =
+    tableJson(
+      raw.table2
+    );
+
+  const t =
+    tableJson(
+      raw.table3
+    );
+
+  const h =
+    a.headers[0] || [];
+
+  const ar =
+    a.rows[0] || [];
+
+  const hr =
+    a.rows[1] || [];
+
+  const innings = [];
+
+  for (
+    let i = 0;
+    i < h.length;
+    i++
+  ) {
+    const inn =
+      parseInt(
+        h[i],
+        10
+      );
+
+    if (
+      Number.isFinite(
+        inn
+      )
+    ) {
+      innings.push({
+        inning: inn,
+        away:
+          nnum(ar[i]),
+        home:
+          nnum(hr[i])
+      });
+    }
+  }
+
+  const total =
+    r => ({
+      runs:
+        nnum(
+          r && r[0]
+        ),
+
+      hits:
+        nnum(
+          r && r[1]
+        ),
+
+      errors:
+        nnum(
+          r && r[2]
+        ),
+
+      walks:
+        nnum(
+          r && r[3]
+        )
+    });
+
+  return {
+    innings,
+
+    totals: {
+      away:
+        total(
+          t.rows[0]
+        ),
+
+      home:
+        total(
+          t.rows[1]
+        )
+    }
+  };
+}
+
+function pitchersFromTable(t) {
+  return t.rows.map(
+    c => ({
+      name:
+        String(
+          c[0] || ""
+        ),
+
+      appearance:
+        String(
+          c[1] || ""
+        ),
+
+      innings:
+        String(
+          c[6] || ""
+        ),
+
+      pitches:
+        nnum(c[8]),
+
+      hitsAllowed:
+        nnum(c[10]),
+
+      walksAndHbp:
+        nnum(c[12]),
+
+      strikeouts:
+        nnum(c[13]),
+
+      runs:
+        nnum(c[14]),
+
+      earnedRuns:
+        nnum(c[15]),
+
+      seasonEra:
+        nnum(c[16])
+    })
+  );
+}
+
+function hittersFromTables(
+  meta,
+  total
+) {
+  const n =
+    Math.min(
+      meta.rows.length,
+      total.rows.length
+    );
+
+  const out = [];
+
+  for (
+    let i = 0;
+    i < n;
+    i++
+  ) {
+    const m =
+      meta.rows[i] || [];
+
+    const x =
+      total.rows[i] || [];
+
+    out.push({
+      order:
+        String(
+          m[0] || ""
+        ),
+
+      position:
+        String(
+          m[1] || ""
+        ),
+
+      name:
+        String(
+          m[2] || ""
+        ),
+
+      seasonAvg:
+        nnum(x[4])
+    });
+  }
+
+  return out;
+}
+
+function boxDetail(raw) {
+  if (
+    !raw ||
+    raw.code === "200"
+  ) {
+    return null;
+  }
+
+  const hs =
+    Array.isArray(
+      raw.arrHitter
+    )
+      ? raw.arrHitter
+      : [];
+
+  const ps =
+    Array.isArray(
+      raw.arrPitcher
+    )
+      ? raw.arrPitcher
+      : [];
+
+  const team =
+    (h, p) => ({
+      hitters:
+        hittersFromTables(
+          tableJson(
+            h && h.table1
+          ),
+          tableJson(
+            h && h.table3
+          )
+        ),
+
+      pitchers:
+        pitchersFromTable(
+          tableJson(
+            p && p.table
+          )
+        )
+    });
+
+  return {
+    away:
+      team(
+        hs[0],
+        ps[0]
+      ),
+
+    home:
+      team(
+        hs[1],
+        ps[1]
+      ),
+
+    events: []
+  };
+}
+
+function starters(arr) {
+  const seen =
+    new Set();
+
+  const out = [];
+
+  for (
+    const h of arr || []
+  ) {
+    const o =
+      parseInt(
+        h.order,
+        10
+      );
+
+    if (
+      !Number.isFinite(o) ||
+      seen.has(o)
+    ) {
+      continue;
+    }
+
+    seen.add(o);
+
+    out.push({
+      order: o,
+      position:
+        h.position,
+      name:
+        h.name,
+      seasonAvg:
+        h.seasonAvg
+    });
+  }
+
+  return out
+    .sort(
+      (a, b) =>
+        a.order - b.order
+    )
+    .slice(0, 9);
+}
+
+async function gameDetail(g) {
+  const seasonId =
+    Number(
+      (g.gameId || "")
+        .slice(0, 4)
+    ) ||
+    Number(
+      todayKST()
+        .slice(0, 4)
+    );
+
+  const p = {
+    leId: 1,
+    srId: 0,
+    seasonId,
+    gameId:
+      g.gameId
+  };
+
+  const [s, b] =
+    await Promise.all([
+      postSchedule(
+        "GetScoreBoardScroll",
+        p
+      ).catch(
+        () => null
+      ),
+
+      postSchedule(
+        "GetBoxScoreScroll",
+        p
+      ).catch(
+        () => null
+      )
+    ]);
+
+  const scoreboard =
+    scoreDetail(s);
+
+  const boxscore =
+    boxDetail(b);
+
+  const lineup =
+    boxscore
+      ? {
+          announced: true,
+
+          away: {
+            slots:
+              starters(
+                boxscore
+                  .away
+                  .hitters
+              )
+          },
+
+          home: {
+            slots:
+              starters(
+                boxscore
+                  .home
+                  .hitters
+              )
+          }
+        }
+      : null;
+
+  return {
+    scoreboard,
+    boxscore,
+    lineup
+  };
+}
+
+function gameSortKey(g) {
+  return (
+    `${g.date || ""}T` +
+    `${g.time || "00:00"}`
+  );
+}export default {
+  async fetch(
+    request,
+    env
+  ) {
+    const url =
+      new URL(
+        request.url
+      );
+
+    /*
+     * /api/kbo 이외의 요청은
+     * 기존 정적 사이트 그대로 전달.
+     *
+     * HTML에 별도의 JS를 삽입하지 않는다.
+     */
+    if (
+      url.pathname !==
+      "/api/kbo"
+    ) {
+      return env.ASSETS.fetch(
+        request
+      );
+    }
+
+    const headers = {
+      "content-type":
+        "application/json; charset=utf-8",
+
+      "cache-control":
+        "no-store, no-cache, must-revalidate",
+
+      "access-control-allow-origin":
+        "*"
+    };
+
+    try {
+      const q =
+        Object.fromEntries(
+          url.searchParams.entries()
+        );
+
+      const type =
+        q.type ||
+        "standings";
+
+      let payload = {
+        updatedAt:
+          new Date()
+            .toISOString()
+      };
+
+      /*
+       * ============================
+       * D-1
+       * 오늘 경기
+       * ============================
+       */
+      if (
+        type === "score"
+      ) {
+        const date =
+          todayKST();
+
+        let games = [];
+
+        try {
+          /*
+           * 공식 KBO 게임센터 API를
+           * 우선 사용한다.
+           *
+           * 여기서 G_ID도 같이 얻기 때문에
+           * 프런트의 경기 카드를 눌렀을 때
+           * 상세정보 API로 연결할 수 있다.
+           */
+          games =
+            (
+              await gameList(
+                date
+              )
+            )
+              .map(
+                x =>
+                  publicGame(
+                    x,
+                    date
+                  )
+              )
+              .filter(
+                isLotte
+              );
+        }
+
+        catch (_) {
+          /*
+           * 게임센터가 일시적으로
+           * 실패할 때만 영문 일정표를
+           * 예비 데이터로 사용한다.
+           */
+          const month =
+            date.slice(
+              0,
+              7
+            );
+
+          const scheduleHtml =
+            await get(
+              `${ENG}/Schedule/DailySchedule.aspx?searchDate=${month}`
+            );
+
+          games =
+            parseScheduleGames(
+              scheduleHtml,
+              month
+            ).filter(
+              g =>
+                g.date ===
+                date
+            );
+        }
+
+        payload = {
+          ...payload,
+          date,
+          games
+        };
+      }
+
+      /*
+       * ============================
+       * D-3
+       * 최근 3경기 + 예정 3경기
+       * ============================
+       */
+      else if (
+        type === "schedule"
+      ) {
+        const current =
+          currentMonthKST();
+
+        /*
+         * 예정 경기는 기존에 잘 나오고
+         * 있었으므로 기존 방식 유지.
+         *
+         * 월초/월말 경계에서도
+         * 충분히 찾을 수 있도록
+         * 2개월 전부터 다음 달까지 읽는다.
+         */
+        const months = [
+          shiftMonth(
+            current,
+            -2
+          ),
+
+          shiftMonth(
+            current,
+            -1
+          ),
+
+          current,
+
+          shiftMonth(
+            current,
+            1
+          )
+        ];
+
+        const htmls =
+          await Promise.all(
+            months.map(
+              month =>
+                get(
+                  `${ENG}/Schedule/DailySchedule.aspx?searchDate=${month}`
+                )
+                  .then(
+                    html => ({
+                      month,
+                      html
+                    })
+                  )
+                  .catch(
+                    () => ({
+                      month,
+                      html: ""
+                    })
+                  )
+            )
+          );
+
+        const allGames =
+          htmls
+            .flatMap(
+              ({
+                month,
+                html
+              }) =>
+                html
+                  ? parseScheduleGames(
+                      html,
+                      month
+                    )
+                  : []
+            )
+            .filter(
+              (
+                g,
+                i,
+                arr
+              ) =>
+                arr.findIndex(
+                  x =>
+                    x.date ===
+                      g.date &&
+                    x.time ===
+                      g.time &&
+                    x.away ===
+                      g.away &&
+                    x.home ===
+                      g.home
+                ) === i
+            )
+            .sort(
+              (a, b) =>
+                gameSortKey(a)
+                  .localeCompare(
+                    gameSortKey(b)
+                  )
+            );
+
+        const today =
+          todayKST();
+
+        /*
+         * 핵심 수정:
+         *
+         * 최근 경기만큼은 영문 일정표의
+         * 종료 문자열에 의존하지 않는다.
+         *
+         * 오늘부터 과거 날짜를 거슬러
+         * 공식 게임센터를 조회하고,
+         *
+         * 1. 롯데 경기
+         * 2. 취소 경기가 아님
+         * 3. 양 팀 최종 점수가 존재
+         *
+         * 이 세 조건을 만족한 실제 경기만
+         * 최근 경기로 인정한다.
+         */
+        const recent =
+          await recentLotteFinalGames(
+            today,
+            3
+          );
+
+        /*
+         * 예정 경기:
+         * 오늘 이후의 예정 경기 가운데
+         * 가장 가까운 세 경기.
+         */
+        const upcoming =
+          allGames
+            .filter(
+              g =>
+                g.status ===
+                  "예정" &&
+                g.date >=
+                  today
+            )
+            .slice(
+              0,
+              3
+            );
+
+        payload = {
+          ...payload,
+
+          month:
+            current,
+
+          recent,
+
+          upcoming,
+
+          games:
+            [...recent]
+              .reverse()
+              .concat(
+                upcoming
+              )
+        };
+      }
+
+      /*
+       * ============================
+       * D-1
+       * 경기 카드 클릭 후 상세정보
+       * ============================
+       */
+      else if (
+        type === "game"
+      ) {
+        const gameId =
+          String(
+            q.gameId || ""
+          ).trim();
+
+        if (!gameId) {
+          throw new Error(
+            "gameId가 없습니다."
+          );
+        }
+
+        /*
+         * G_ID 앞 8자리가 경기 날짜.
+         * 예:
+         * 20260901....
+         */
+        const date =
+          normDate(
+            gameId.slice(
+              0,
+              8
+            )
+          ) ||
+          todayKST();
+
+        /*
+         * 해당 날짜의 게임센터 목록에서
+         * 같은 G_ID의 경기를 다시 찾는다.
+         *
+         * 이렇게 해야 현재 점수,
+         * 현재 이닝, B/S/O 등의
+         * 최신 상태도 같이 받을 수 있다.
+         */
+        const rawGames =
+          await gameList(
+            date
+          );
+
+        const raw =
+          rawGames.find(
+            x =>
+              String(
+                x.G_ID || ""
+              ) ===
+              gameId
+          );
+
+        if (!raw) {
+          throw new Error(
+            "KBO 게임센터에서 해당 경기를 찾지 못했습니다."
+          );
+        }
+
+        const game =
+          publicGame(
+            raw,
+            date
+          );
+
+        /*
+         * 스코어보드 + 박스스코어
+         * 상세정보 요청.
+         */
+        const detail =
+          await gameDetail(
+            game
+          );
+
+        payload = {
+          ...payload,
+          date,
+          game,
+          detail
+        };
+      }
+
+      /*
+       * ============================
+       * D-3
+       * KBO 리그 순위
+       * ============================
+       */
+      else if (
+        type ===
+        "standings"
+      ) {
+        const html =
+          await get(
+            `${BASE}/Record/TeamRank/TeamRankDaily.aspx`
+          );
+
+        const ts =
+          tables(
+            html
+          );
+
+        const table =
+          ts.find(
+            t => {
+              const h =
+                t.headers.join(
+                  " "
+                );
+
+              return (
+                h.includes(
+                  "순위"
+                ) &&
+                (
+                  h.includes(
+                    "팀명"
+                  ) ||
+                  h.includes(
+                    "팀"
+                  )
+                )
+              );
+            }
+          ) || null;
+
+        payload = {
+          ...payload,
+          table
+        };
+      }
+
+      /*
+       * ============================
+       * D-2
+       * 롯데 등록 선수
+       * ============================
+       */
+      else if (
+        type === "roster"
+      ) {
+        const html =
+          await get(
+            `${BASE}/Player/RegisterAll.aspx`
+          );
+
+        const groups =
+          lotteRoster(
+            html
+          );
+
+        payload = {
+          ...payload,
+
+          team:
+            "롯데",
+
+          groups,
+
+          counts: {
+            투수:
+              groups[
+                "투수"
+              ].length,
+
+            포수:
+              groups[
+                "포수"
+              ].length,
+
+            내야수:
+              groups[
+                "내야수"
+              ].length,
+
+            외야수:
+              groups[
+                "외야수"
+              ].length
+          }
+        };
+      }
+
+      /*
+       * ============================
+       * D-2
+       * 개별 선수 상세정보
+       * ============================
+       */
+      else if (
+        type === "player"
+      ) {
+        const name =
+          (
+            q.name || ""
+          ).trim();
+
+        const number =
+          (
+            q.number || ""
+          ).trim();
+
+        const position =
+          (
+            q.position || ""
+          ).trim();
+
+        if (!name) {
+          throw new Error(
+            "선수 이름이 없습니다."
+          );
+        }
+
+        /*
+         * 선수 이름만으로 찾으면
+         * 동명이인이 있을 수 있으므로
+         * 등번호/포지션도 함께 비교.
+         */
+        const found =
+          await findLottePlayer(
+            name,
+            number,
+            position
+          );
+
+        const html =
+          await get(
+            BASE +
+            found.path
+          );
+
+        payload = {
+          ...payload,
+
+          player:
+            found,
+
+          profile:
+            parseProfile(
+              html
+            ),
+
+          tables:
+            seasonTables(
+              html
+            )
+        };
+      }
+
+      else {
+        throw new Error(
+          "지원하지 않는 요청입니다."
+        );
+      }
+
+      return new Response(
+        JSON.stringify(
+          payload
+        ),
+        {
+          status: 200,
+          headers
+        }
+      );
+    }
+
+    catch (error) {
+      console.error(
+        "KBO API ERROR:",
+        error
+      );
+
+      return new Response(
+        JSON.stringify({
+          error:
+            error &&
+            error.message
+              ? error.message
+              : String(
+                  error
+                )
+        }),
+        {
+          status: 500,
+          headers
+        }
+      );
+    }
+  }
+};

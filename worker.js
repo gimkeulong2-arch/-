@@ -2640,9 +2640,34 @@ export default {
       /*
        * D-1 오늘 경기
        */
-      if (
-        type === "score"
-      ) {
+      /*
+ * 임시 진단용:
+ * KBO 과거 날짜 원본 확인
+ */
+if (
+  type === "debug"
+) {
+  const date =
+    String(
+      q.date ||
+      "2026-08-29"
+    );
+
+  const raw =
+    await gameList(
+      date
+    );
+
+  payload = {
+    ...payload,
+    date,
+    raw
+  };
+}
+
+else if (
+  type === "score"
+) {
         const date =
           todayKST();
 
